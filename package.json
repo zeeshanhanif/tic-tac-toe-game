@@ -1,0 +1,27 @@
+{
+  "name": "tic-tac-toe-game",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Browser-based Tic-Tac-Toe game — client-side static SPA (see docs/).",
+  "scripts": {
+    "gen:tokens": "node scripts/gen-tokens.mjs",
+    "predev": "npm run gen:tokens",
+    "dev": "vite",
+    "prebuild": "npm run gen:tokens",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.64.0",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
+  }
+}

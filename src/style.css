@@ -1,0 +1,138 @@
+/* Base shell styling — consumes the generated design tokens (the wiring:
+   delete docs/tokens.json's values, regenerate, and this file's var() lookups
+   go empty and the shell visibly breaks). Component styling is per-slice work
+   in ui-design; this is only the skeleton shell + board. */
+@import "./ui/generated/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-family-rounded);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Always-visible focus (a11y bar — added this phase, ux-foundations §A4). */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.app {
+  max-width: var(--layout-appMaxWidth);
+  margin: 0 auto;
+  padding: var(--layout-stagePadding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-appGap);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.wordmark {
+  font-size: var(--font-size-wordmark);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--font-tracking-wider);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.nav__link,
+.toggle {
+  min-height: var(--layout-touchTargetMin);
+  padding: 0 var(--space-8);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.nav__link[aria-current="page"] {
+  background: var(--color-ink);
+  color: var(--color-primaryInk);
+  border-color: var(--color-ink);
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-appGap);
+}
+
+.view__title {
+  margin: 0;
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--font-tracking-tight);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-mutedStrong);
+  font-size: var(--font-size-sm);
+}
+
+/* Board — the recessed tray with nine cells. */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--elevation-card);
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  min-width: var(--layout-touchTargetMin);
+  min-height: var(--layout-touchTargetMin);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  font-size: var(--font-size-mark);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+
+.cell--x {
+  color: var(--color-x);
+  background: var(--color-xSoft);
+}
+
+.cell--o {
+  color: var(--color-o);
+  background: var(--color-oSoft);
+}
