@@ -189,6 +189,82 @@ body {
   font-weight: var(--font-weight-medium);
 }
 
+/* Difficulty segmented control */
+.seg {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  gap: var(--space-2);
+  box-shadow: var(--elevation-card);
+}
+.seg button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  color: var(--color-mutedStrong);
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: var(--layout-touchTargetMin);
+}
+.seg button.on {
+  background: var(--color-ink);
+  color: var(--color-primaryInk);
+}
+.seg button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.note {
+  font-size: var(--font-size-sm);
+  color: var(--color-mutedStrong);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+/* "You play as" side pills */
+.pillrow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+.pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-7);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  box-shadow: var(--elevation-card);
+  min-height: var(--layout-touchTargetMin);
+}
+.pill .g {
+  width: 26px;
+  height: 26px;
+  font-size: var(--font-size-md);
+}
+.pill.sel.x {
+  border-color: var(--color-x);
+  color: var(--color-x);
+  background: var(--color-xSoft);
+}
+.pill.sel.o {
+  border-color: var(--color-o);
+  color: var(--color-o);
+  background: var(--color-oSoft);
+}
+
 /* ---- Buttons ---- */
 .btn {
   border: 1px solid var(--color-line);
