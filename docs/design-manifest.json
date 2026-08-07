@@ -15,11 +15,8 @@
         "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Setup Screen.dc.html)"
       },
       "states": {
-        "covered": ["default (2-player selected)"],
-        "gaps": [
-          "vs-computer variant (difficulty + side controls) → FEAT-002",
-          "remembered-defaults → FEAT-008"
-        ],
+        "covered": ["default (2-player selected)", "vs-computer (difficulty + side)"],
+        "gaps": ["remembered-defaults → FEAT-008"],
         "supplements": [
           {
             "state": "two-player-variant",
@@ -28,17 +25,19 @@
           }
         ]
       },
-      "contract_bindings": ["core.newGame", "GameConfig{mode}"],
+      "contract_bindings": ["core.newGame", "GameConfig{mode, difficulty, humanMark}"],
       "conformance": {
         "result": "pass",
         "corrections": [
           "small essential text (.mdesc/.note): --muted → --color-mutedStrong (AA, design.md §5/§9)",
-          "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)"
+          "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)",
+          "FEAT-002: Hard difficulty option present but disabled — playable in FEAT-003 (FR-AI-003)"
         ],
         "escalations": []
       },
       "status": "designed",
-      "designed_at": "2026-08-06"
+      "designed_at": "2026-08-06",
+      "updated_by": ["FEAT-002 (vs-computer variant)"]
     },
     "SCR-WEB-002": {
       "name": "Game — In Play",
@@ -53,29 +52,37 @@
         "covered": [
           "default (human turn — X and O)",
           "cell hover/ghost",
-          "occupied/ended input ignored"
+          "occupied/ended input ignored",
+          "vs-computer scoreboard (You / Computer <Diff> AI)"
         ],
-        "gaps": ["computer-thinking → FEAT-002"],
+        "gaps": [],
         "supplements": [
           {
             "state": "two-player-scoreboard",
             "strategy": "code-native",
             "source": "features/FEAT-001-local-two-player-match/ui-design.md#scr-web-002--game--in-play"
+          },
+          {
+            "state": "computer-thinking",
+            "strategy": "code-native",
+            "source": "features/FEAT-002-vs-computer-easy-medium/ui-design.md#scr-web-002--game--in-play"
           }
         ]
       },
-      "contract_bindings": ["core.GameState", "core.playMove", "core.newGame"],
+      "contract_bindings": ["core.GameState", "core.playMove", "core.newGame", "core.chooseMove", "GameConfig{difficulty, humanMark}"],
       "conformance": {
         "result": "pass",
         "corrections": [
           "2-player scoreboard: 'You/Computer/Hard AI' labels → 'Player 1 (X) / Player 2 (O)' (ux-foundations Part D)",
           "score numeral deferred to FEAT-004 (no persistence this slice)",
-          "added always-visible focus ring on cells/buttons (design.md §9)"
+          "added always-visible focus ring on cells/buttons (design.md §9)",
+          "FEAT-002: vs-computer scoreboard uses source 'You/Computer' labels; computer-thinking turn state is a code-native supplement (not in source mockup)"
         ],
         "escalations": []
       },
       "status": "designed",
-      "designed_at": "2026-08-06"
+      "designed_at": "2026-08-06",
+      "updated_by": ["FEAT-002 (computer-thinking state, vs-computer scoreboard)"]
     },
     "SCR-WEB-003": {
       "name": "Game — Result",
