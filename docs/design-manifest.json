@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "policy": {
+    "fallback": "code-native",
+    "note": "Asked once on first run. Chosen: code-native — the design system (docs/design.md) is a high-fidelity codification of the connected Claude Design project and the stack builds DOM by hand (Vanilla TS, ADR-002), so screens absent from the design source are specced for code. Screens that DO exist in the Claude Design project are registered (Strategy A). Overridable per screen."
+  },
+  "screens": {
+    "SCR-WEB-001": {
+      "name": "Setup / New Game",
+      "surface": "WEB",
+      "feature": "FEAT-001",
+      "strategy": "registered",
+      "source": {
+        "tool": "claude-design",
+        "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Setup Screen.dc.html)"
+      },
+      "states": {
+        "covered": ["default (2-player selected)"],
+        "gaps": [
+          "vs-computer variant (difficulty + side controls) → FEAT-002",
+          "remembered-defaults → FEAT-008"
+        ],
+        "supplements": [
+          {
+            "state": "two-player-variant",
+            "strategy": "code-native",
+            "source": "features/FEAT-001-local-two-player-match/ui-design.md#scr-web-001--setup--new-game"
+          }
+        ]
+      },
+      "contract_bindings": ["core.newGame", "GameConfig{mode}"],
+      "conformance": {
+        "result": "pass",
+        "corrections": [
+          "small essential text (.mdesc/.note): --muted → --color-mutedStrong (AA, design.md §5/§9)",
+          "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)"
+        ],
+        "escalations": []
+      },
+      "status": "designed",
+      "designed_at": "2026-08-06"
+    },
+    "SCR-WEB-002": {
+      "name": "Game — In Play",
+      "surface": "WEB",
+      "feature": "FEAT-001",
+      "strategy": "registered",
+      "source": {
+        "tool": "claude-design",
+        "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Game Screen.dc.html)"
+      },
+      "states": {
+        "covered": [
+          "default (human turn — X and O)",
+          "cell hover/ghost",
+          "occupied/ended input ignored"
+        ],
+        "gaps": ["computer-thinking → FEAT-002"],
+        "supplements": [
+          {
+            "state": "two-player-scoreboard",
+            "strategy": "code-native",
+            "source": "features/FEAT-001-local-two-player-match/ui-design.md#scr-web-002--game--in-play"
+          }
+        ]
+      },
+      "contract_bindings": ["core.GameState", "core.playMove", "core.newGame"],
+      "conformance": {
+        "result": "pass",
+        "corrections": [
+          "2-player scoreboard: 'You/Computer/Hard AI' labels → 'Player 1 (X) / Player 2 (O)' (ux-foundations Part D)",
+          "score numeral deferred to FEAT-004 (no persistence this slice)",
+          "added always-visible focus ring on cells/buttons (design.md §9)"
+        ],
+        "escalations": []
+      },
+      "status": "designed",
+      "designed_at": "2026-08-06"
+    },
+    "SCR-WEB-003": {
+      "name": "Game — Result",
+      "surface": "WEB",
+      "feature": "FEAT-001",
+      "strategy": "registered",
+      "source": {
+        "tool": "claude-design",
+        "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Game Screen - Win.dc.html)"
+      },
+      "states": {
+        "covered": ["win (X or O)"],
+        "gaps": [],
+        "supplements": [
+          {
+            "state": "draw",
+            "strategy": "code-native",
+            "source": "features/FEAT-001-local-two-player-match/ui-design.md#scr-web-003--game--result"
+          }
+        ]
+      },
+      "contract_bindings": ["core.GameState", "core.GameStatus{won,draw,line}"],
+      "conformance": {
+        "result": "pass",
+        "corrections": [
+          "2-player result copy: 'You win!' → 'X wins!' / 'O wins!'",
+          "draw banner uses neutral tokens (result-banner reuse, no win green) — ux-foundations Part D",
+          "result-banner sub-copy '#5a7d64' → --color-mutedStrong on the neutral/draw variant (AA)"
+        ],
+        "escalations": []
+      },
+      "status": "designed",
+      "designed_at": "2026-08-06"
+    }
+  }
+}
