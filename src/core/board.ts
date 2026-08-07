@@ -1,9 +1,8 @@
 // Domain core — pure, DOM-free (ADR-003 / NFR-MAINT-001).
 //
-// SKELETON SCOPE: mark placement and illegal-move rejection are real (they are
-// the trivial end-to-end operation the walking skeleton proves). Win/draw
-// detection is a STUB here — it is built and unit-tested in FEAT-001 (see
-// docs/implementation-plan.md §5 and the per-slice detailed-design step).
+// Board primitives + outcome detection. Mark placement, illegal-move rejection
+// (FR-GAME-003), and win/row/col/diagonal + draw detection (FR-GAME-007/009)
+// live here. Turn management lives in game.ts.
 
 export type Mark = "X" | "O";
 export type CellValue = Mark | null;
@@ -46,12 +45,29 @@ export function applyMove(board: Board, index: number, mark: Mark): MoveResult {
   return { board: Object.freeze(next), applied: true, status: evaluateStatus(next) };
 }
 
+/** The 8 winning triples (row-major indices): 3 rows, 3 columns, 2 diagonals. */
+export const WINNING_LINES: readonly (readonly [number, number, number])[] = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+  [0, 4, 8], [2, 4, 6], // diagonals
+];
+
 /**
- * STUB — always reports the game in progress. Real win/draw detection (rows,
- * columns, diagonals, full-board draw) is FEAT-001. Kept here so the UI wires
- * against the final shape now; FEAT-001 replaces the body only.
+ * Outcome of the board: won (with the winning mark and line), draw (full board,
+ * no line), or in-progress. Pure — the winner is derived from the board itself
+ * (the mark occupying a completed line), so no turn context is needed
+ * (FR-GAME-007/009).
  */
-export function evaluateStatus(_board: Board): GameStatus {
-  // TODO(FEAT-001): detect win (row/col/diag) and draw — FR-GAME-007/009.
+export function evaluateStatus(board: Board): GameStatus {
+  for (const line of WINNING_LINES) {
+    const [a, b, c] = line;
+    const mark = board[a];
+    if (mark !== null && board[b] === mark && board[c] === mark) {
+      return { kind: "won", mark, line };
+    }
+  }
+  if (board.every((cell) => cell !== null)) {
+    return { kind: "draw" };
+  }
   return { kind: "in-progress" };
 }
