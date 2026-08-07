@@ -19,3 +19,6 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # UI/E2E smoke over the critical flows (ADR-006). test:e2e rebuilds + previews.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
