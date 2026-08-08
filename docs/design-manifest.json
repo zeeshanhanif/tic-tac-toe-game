@@ -31,13 +31,14 @@
         "corrections": [
           "small essential text (.mdesc/.note): --muted → --color-mutedStrong (AA, design.md §5/§9)",
           "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)",
-          "FEAT-002: Hard difficulty option present but disabled — playable in FEAT-003 (FR-AI-003)"
+          "FEAT-002: Hard difficulty option present but disabled (slice boundary) — enabled in FEAT-003",
+          "FEAT-003: Hard enabled — difficulty control now matches the source (all three selectable)"
         ],
         "escalations": []
       },
       "status": "designed",
       "designed_at": "2026-08-06",
-      "updated_by": ["FEAT-002 (vs-computer variant)"]
+      "updated_by": ["FEAT-002 (vs-computer variant)", "FEAT-003 (Hard enabled)"]
     },
     "SCR-WEB-002": {
       "name": "Game — In Play",
