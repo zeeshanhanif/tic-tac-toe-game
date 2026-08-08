@@ -33,13 +33,13 @@ architecture, implementation, and QA phases.
 | FR-AI-003 | Hard: optimal minimax | M | Elicitation | UC-03 | FEAT-003 | features/FEAT-003-hard-ai-minimax/technical-design.md | TBD | features/FEAT-003-hard-ai-minimax/acceptance-report.md |
 | FR-AI-004 | AI auto-moves with delay | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-AI-005 | AI plays only legal moves | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
-| FR-STATS-001 | Track W/L/D per mode | M | Elicitation | UC-04 | FEAT-004 | TBD | TBD | TBD |
-| FR-STATS-002 | Record match-history entry | M | Elicitation | UC-04 | FEAT-004 | TBD | TBD | TBD |
+| FR-STATS-001 | Track W/L/D per mode | M | Elicitation | UC-04 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | TBD |
+| FR-STATS-002 | Record match-history entry | M | Elicitation | UC-04 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | TBD |
 | FR-STATS-003 | Display stats summary | M | Elicitation | UC-06 | FEAT-005 | TBD | TBD | TBD |
 | FR-STATS-004 | Display match history | M | Elicitation | UC-06 | FEAT-005 | TBD | TBD | TBD |
-| FR-STATS-005 | Persist stats in localStorage | M | Elicitation | UC-06 | FEAT-004 | TBD | TBD | TBD |
+| FR-STATS-005 | Persist stats in localStorage | M | Elicitation | UC-06 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | TBD |
 | FR-STATS-006 | Reset stats with confirmation | S | Elicitation | UC-07 | FEAT-006 | TBD | TBD | TBD |
-| FR-STATS-007 | Update stats at game end | M | Elicitation | UC-04 | FEAT-004 | TBD | TBD | TBD |
+| FR-STATS-007 | Update stats at game end | M | Elicitation | UC-04 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | TBD |
 | FR-THEME-001 | Toggle light/dark | M | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
 | FR-THEME-002 | Default to OS color scheme | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
 | FR-THEME-003 | Persist theme choice | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
@@ -60,7 +60,7 @@ architecture, implementation, and QA phases.
 | NFR-COMPAT-001 | Latest 2 versions major browsers | Compatibility | Elicitation | Test | Foundations | TBD | TBD | TBD |
 | NFR-COMPAT-002 | Usable 320 px → desktop | Compatibility | Elicitation | Test | Foundations | TBD | TBD | TBD |
 | NFR-REL-001 | No crash on invalid/rapid input | Reliability | Elicitation | Test | FEAT-001 | TBD | TBD | TBD |
-| NFR-REL-002 | Graceful if localStorage absent | Reliability | Elicitation | Test | FEAT-004 | TBD | TBD | TBD |
+| NFR-REL-002 | Graceful if localStorage absent | Reliability | Elicitation | Test | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | TBD |
 | NFR-PRIV-001 | No PII collected/transmitted | Privacy | Elicitation | Inspection | Foundations | TBD | TBD | TBD |
 | NFR-PRIV-002 | No network calls during play | Privacy | Elicitation | Inspection | Foundations | TBD | TBD | TBD |
 | NFR-MAINT-001 | Logic decoupled from UI | Maintainability | Elicitation | Inspection | Foundations | TBD | TBD | TBD |
