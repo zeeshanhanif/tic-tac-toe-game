@@ -1,18 +1,133 @@
-// Setup view — placeholder shell (landing place for FEAT-001/002 ui-design:
-// mode · difficulty · side · Start Game — SCR-WEB-001).
+// Setup view (SCR-WEB-001). Choose mode and start a game.
+// FEAT-002: both "2 Players" and "Vs. Computer" are functional; vs-Computer
+// reveals Difficulty (Easy/Medium; Hard disabled until FEAT-003) and a "You
+// play as" side choice (FR-MODE-002 partial, FR-MODE-003).
 
-export function createSetupView(): HTMLElement {
-  const root = document.createElement("section");
-  root.className = "view";
+import { el, topbar } from "../dom.ts";
+import type { Difficulty, Mark } from "../../core/index.ts";
+import type { GameConfig, GameMode } from "../config.ts";
 
-  const title = document.createElement("h1");
-  title.className = "view__title";
-  title.textContent = "Setup";
+interface SetupViewHandlers {
+  onStart: (config: GameConfig) => void; // FR-MODE-004
+}
 
-  const note = document.createElement("p");
-  note.className = "muted";
-  note.textContent = "Placeholder — mode, difficulty, and side selection are built in FEAT-001/002 (SCR-WEB-001).";
+export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
+  let mode: GameMode = "two-player";
+  let difficulty: Difficulty = "medium"; // default
+  let humanMark: Mark = "X"; // default — X goes first
 
-  root.append(title, note);
+  const root = el("section", "view");
+
+  const hero = el("div", "hero");
+  hero.append(el("h1", undefined, "New Game"), el("p", undefined, "Choose how you want to play."));
+
+  // --- Mode ---
+  const modeField = el("div", "field");
+  modeField.append(el("div", "label", "Mode"));
+  const modes = el("div", "modes");
+  const modeCards: Record<GameMode, HTMLElement> = {
+    "vs-computer": modeCard("vs-computer", "Vs. Computer", "Play solo against the AI."),
+    "two-player": modeCard("two-player", "2 Players", "Share this device."),
+  };
+  modes.append(modeCards["vs-computer"], modeCards["two-player"]);
+  modeField.append(modes);
+
+  function modeCard(value: GameMode, title: string, desc: string): HTMLElement {
+    const card = el("div", "mode");
+    const glyphs = el("div", "glyphs");
+    glyphs.append(el("div", "g x", "X"), el("div", "g o", "O"));
+    card.append(glyphs, el("div", "mtitle", title), el("div", "mdesc", desc));
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+    const select = () => {
+      mode = value;
+      sync();
+    };
+    card.addEventListener("click", select);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        select();
+      }
+    });
+    return card;
+  }
+
+  // --- Difficulty (vs-computer only) ---
+  const diffField = el("div", "field");
+  diffField.append(el("div", "label", "Difficulty"));
+  const seg = el("div", "seg");
+  const diffButtons: [Difficulty, string, boolean][] = [
+    ["easy", "Easy", true],
+    ["medium", "Medium", true],
+    ["hard", "Hard", false], // disabled until FEAT-003
+  ];
+  const diffEls = new Map<Difficulty, HTMLButtonElement>();
+  for (const [value, text, enabled] of diffButtons) {
+    const btn = el("button", undefined, text);
+    btn.type = "button";
+    btn.disabled = !enabled;
+    if (!enabled) btn.title = "Hard arrives in FEAT-003";
+    btn.addEventListener("click", () => {
+      difficulty = value;
+      sync();
+    });
+    diffEls.set(value, btn);
+    seg.append(btn);
+  }
+  const diffNote = el("div", "note", "Easy plays randomly; Medium blocks your wins. Hard — coming soon.");
+  diffField.append(seg, diffNote);
+
+  // --- You play as (vs-computer only) ---
+  const sideField = el("div", "field");
+  sideField.append(el("div", "label", "You play as"));
+  const pillrow = el("div", "pillrow");
+  const sideEls = new Map<Mark, HTMLElement>();
+  for (const [markValue, caption] of [["X", "X · goes first"], ["O", "O · goes second"]] as [Mark, string][]) {
+    const pill = el("div", `pill ${markValue.toLowerCase()}`);
+    pill.append(el("div", `g ${markValue.toLowerCase()}`, markValue), document.createTextNode(caption));
+    pill.setAttribute("role", "button");
+    pill.tabIndex = 0;
+    const select = () => {
+      humanMark = markValue;
+      sync();
+    };
+    pill.addEventListener("click", select);
+    pill.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        select();
+      }
+    });
+    sideEls.set(markValue, pill);
+    pillrow.append(pill);
+  }
+  sideField.append(pillrow);
+
+  const startBtn = el("button", "btn primary", "Start Game");
+  startBtn.type = "button";
+  startBtn.addEventListener("click", () => {
+    handlers.onStart(mode === "vs-computer" ? { mode, difficulty, humanMark } : { mode });
+  });
+
+  function sync(): void {
+    for (const [value, card] of Object.entries(modeCards)) {
+      const s = value === mode;
+      card.classList.toggle("sel", s);
+      card.setAttribute("aria-pressed", String(s));
+    }
+    const vsComputer = mode === "vs-computer";
+    diffField.hidden = !vsComputer;
+    sideField.hidden = !vsComputer;
+    for (const [value, btn] of diffEls) btn.classList.toggle("on", value === difficulty && !btn.disabled);
+    for (const [value, pill] of sideEls) {
+      const s = value === humanMark;
+      pill.classList.toggle("sel", s);
+      pill.setAttribute("aria-pressed", String(s));
+    }
+  }
+
+  sync();
+  root.append(topbar(), hero, modeField, diffField, sideField, startBtn);
   return root;
 }

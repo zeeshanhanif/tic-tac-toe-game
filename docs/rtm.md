@@ -11,28 +11,28 @@ architecture, implementation, and QA phases.
 
 | Req ID | Description (abbrev.) | Priority | Source | Use Case(s) | Plan ref | Design | Code | Test |
 |--------|-----------------------|----------|--------|-------------|----------|--------|------|------|
-| FR-GAME-001 | Display 3×3 board | M | Elicitation | UC-01 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-002 | Place mark on empty cell | M | Elicitation | UC-02 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-003 | Reject move on occupied cell | M | Elicitation | UC-02 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-004 | Reject move after game over | M | Elicitation | UC-02 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-005 | Alternate turns, X first | M | Elicitation | UC-02 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-006 | Show current-turn indicator | M | Elicitation | UC-02 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-007 | Detect win (row/col/diag) | M | Elicitation | UC-04 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-008 | Highlight winning line | S | Elicitation | UC-04 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-009 | Detect draw | M | Elicitation | UC-04 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-010 | Announce result | M | Elicitation | UC-04 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-011 | New Game action | M | Elicitation | UC-05 | FEAT-001 | TBD | TBD | TBD |
-| FR-GAME-012 | Return to setup | S | Elicitation | UC-05 | FEAT-001 | TBD | TBD | TBD |
-| FR-MODE-001 | Choose mode | M | Elicitation | UC-01 | FEAT-001, FEAT-002 | TBD | TBD | TBD |
-| FR-MODE-002 | Choose AI difficulty | M | Elicitation | UC-01 | FEAT-002 | TBD | TBD | TBD |
-| FR-MODE-003 | Choose to play first/second | S | Elicitation | UC-01 | FEAT-002 | TBD | TBD | TBD |
-| FR-MODE-004 | Start game with settings | M | Elicitation | UC-01 | FEAT-001, FEAT-002 | TBD | TBD | TBD |
+| FR-GAME-001 | Display 3×3 board | M | Elicitation | UC-01 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-002 | Place mark on empty cell | M | Elicitation | UC-02 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-003 | Reject move on occupied cell | M | Elicitation | UC-02 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-004 | Reject move after game over | M | Elicitation | UC-02 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-005 | Alternate turns, X first | M | Elicitation | UC-02 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-006 | Show current-turn indicator | M | Elicitation | UC-02 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-007 | Detect win (row/col/diag) | M | Elicitation | UC-04 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-008 | Highlight winning line | S | Elicitation | UC-04 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-009 | Detect draw | M | Elicitation | UC-04 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-010 | Announce result | M | Elicitation | UC-04 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-011 | New Game action | M | Elicitation | UC-05 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-GAME-012 | Return to setup | S | Elicitation | UC-05 | FEAT-001 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md |
+| FR-MODE-001 | Choose mode | M | Elicitation | UC-01 | FEAT-001, FEAT-002 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md (partial) · features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md (partial) · features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
+| FR-MODE-002 | Choose AI difficulty | M | Elicitation | UC-01 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md (partial — Hard = FEAT-003) | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md (partial) |
+| FR-MODE-003 | Choose to play first/second | S | Elicitation | UC-01 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
+| FR-MODE-004 | Start game with settings | M | Elicitation | UC-01 | FEAT-001, FEAT-002 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md (partial) · features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md (partial) · features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-MODE-005 | Remember last settings | C | Elicitation | UC-01 | FEAT-008 | TBD | TBD | TBD |
-| FR-AI-001 | Easy: random move | M | Elicitation | UC-03 | FEAT-002 | TBD | TBD | TBD |
-| FR-AI-002 | Medium: win/block else random | M | Elicitation | UC-03 | FEAT-002 | TBD | TBD | TBD |
+| FR-AI-001 | Easy: random move | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
+| FR-AI-002 | Medium: win/block else random | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-AI-003 | Hard: optimal minimax | M | Elicitation | UC-03 | FEAT-003 | TBD | TBD | TBD |
-| FR-AI-004 | AI auto-moves with delay | M | Elicitation | UC-03 | FEAT-002 | TBD | TBD | TBD |
-| FR-AI-005 | AI plays only legal moves | M | Elicitation | UC-03 | FEAT-002 | TBD | TBD | TBD |
+| FR-AI-004 | AI auto-moves with delay | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
+| FR-AI-005 | AI plays only legal moves | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-STATS-001 | Track W/L/D per mode | M | Elicitation | UC-04 | FEAT-004 | TBD | TBD | TBD |
 | FR-STATS-002 | Record match-history entry | M | Elicitation | UC-04 | FEAT-004 | TBD | TBD | TBD |
 | FR-STATS-003 | Display stats summary | M | Elicitation | UC-06 | FEAT-005 | TBD | TBD | TBD |

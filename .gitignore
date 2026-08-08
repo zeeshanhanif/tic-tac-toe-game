@@ -28,3 +28,9 @@ dist-ssr
 
 # Generated design tokens (regenerated from docs/tokens.json)
 src/ui/generated/tokens.css
+
+# Playwright (ADR-006)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

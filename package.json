@@ -13,10 +13,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "pretest:e2e": "npm run build",
+    "test:e2e": "playwright test",
     "lint": "eslint ."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "eslint": "^10.7.0",
     "globals": "^17.7.0",
     "typescript": "~6.0.2",

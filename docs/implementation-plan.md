@@ -1,9 +1,13 @@
 # Implementation Plan: Tic-Tac-Toe Game
 
-> Status: Draft · Last updated: 2026-07-14
+> Status: Draft · Last updated: 2026-08-07
 > Inputs: docs/srs.md · docs/use-cases.md · docs/architecture.md ·
 > docs/ux-foundations.md (+ docs/design.md, docs/tokens.json, docs/rtm.md) —
 > **all found; full fidelity.**
+>
+> **Amendments:** 2026-08-07 — §6 foundations updated for **ADR-006 (Playwright
+> UI/E2E smoke)**: added the E2E harness + CF-1 smoke backfill. Feature breakdown
+> and build sequence unchanged.
 
 ## 1. Overview
 
@@ -228,13 +232,26 @@ cross-cutting concepts and ux-foundations §A4/§A3):
 - **Repo & conventions** — single Vite + TypeScript repo; `core/` (pure, no DOM)
   vs. `ui/` (DOM shell) vs. `infra/` (Storage Repository) directory seam
   enforcing the inward dependency rule (ADR-003, NFR-MAINT-001).
-- **CI/CD** — CI runs `vite build` + `vitest`; deploy the static bundle to the
-  chosen static host (GitHub Pages / Netlify / Vercel) with content-hashed
-  assets (ADR-001, NFR-PORT-001). *Config written; the skeleton proves it green.*
-- **Test strategy** — Vitest unit tests for the domain core, mandatory for win
-  detection and AI move selection (NFR-MAINT-002, ADR-005); the Hard-AI
-  "never-loses over many games" and 500 ms-budget checks live here (FR-AI-003,
-  NFR-PERF-002). Core is tested in pure Node, no DOM mocks.
+- **CI/CD** — CI runs `vite build` + `vitest` + the **Playwright E2E smoke**
+  (headless); deploy the static bundle to the chosen static host (GitHub Pages /
+  Netlify / Vercel) with content-hashed assets (ADR-001, NFR-PORT-001). *Config
+  written; the skeleton proves it green.*
+- **Test strategy (two tiers, ADR-005 + ADR-006)** — (1) **Vitest unit tests**
+  for the domain core, mandatory for win detection and AI move selection
+  (NFR-MAINT-002, ADR-005); the Hard-AI "never-loses over many games" and 500 ms
+  budget checks live here (FR-AI-003, NFR-PERF-002). Core is tested in pure Node,
+  no DOM mocks. (2) **Playwright UI/E2E smoke** over the critical flows CF-1/CF-2
+  — see the E2E-harness item below.
+- **E2E harness (Playwright, ADR-006)** — stand up Playwright (own headless
+  Chromium, no browser extension) with a thin smoke suite over the
+  architecture's **critical flows** (architecture §8 Testing): **CF-1 — Play a
+  game** (UC-01..05) and **CF-2 — Review & reset statistics** (UC-06/07). Assert
+  on stable roles/text, not pixels; keep it smoke, not sprawl (NFR-MAINT-002).
+  **Backfill: CF-1 already ships** (FEAT-001 + FEAT-002, both verified), so the
+  harness + the CF-1 smoke spec is immediate foundations work — not a per-feature
+  task. Thereafter, **per-feature detailed-design mints a flow-aware E2E task**
+  for any feature that completes a segment of CF-1/CF-2 (e.g. CF-2 lands with the
+  stats slices FEAT-005/006; FEAT-003 Hard-AI may extend the CF-1 smoke).
 - **Environments** — none beyond local + the static host; no runtime, secrets,
   or config (architecture §7). Offline-after-load verified (NFR-PORT-002).
 - **Observability** — none by design (privacy-first, no backend); console

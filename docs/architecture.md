@@ -1,6 +1,10 @@
 # Architecture: Tic-Tac-Toe Game
 
-> Status: Draft · Last updated: 2026-07-09 · Author: zeeshanhanif
+> Status: Draft · Last updated: 2026-08-07 · Author: zeeshanhanif
+>
+> **Amendments:** 2026-08-07 — added **ADR-006 (Playwright UI/E2E smoke tests)**
+> and a cross-cutting **Testing** entry naming the critical flows (CF-1, CF-2).
+> Complements ADR-005; does not change the settled stack (ADR-001/002).
 
 ## 1. Introduction and Goals
 
@@ -77,6 +81,10 @@ graph TB
   (ADR-004). Driven by C-2, NFR-REL-002.
 - **Vitest for unit tests** — co-located with Vite, tests the domain core
   (ADR-005). Driven by NFR-MAINT-002.
+- **Playwright for UI/E2E smoke tests** — a thin headless-browser net over the
+  critical user flows the core tests can't see (ADR-006). Second tier below the
+  unit tests; targets the named critical flows (§8 Testing), not exhaustive UI
+  coverage.
 
 ## 5. Building Block View
 
@@ -193,6 +201,26 @@ Vite's content-hashed filenames; the app runs offline after first load
   wrapped so quota/availability failures degrade to a session-only in-memory
   store (NFR-REL-002). Rapid/duplicate input is idempotent because moves validate
   against current board state (NFR-REL-001).
+- **Testing** — two tiers. (1) **Unit tests** for the domain core (game engine,
+  AI) via Vitest — the primary net and the mandated coverage (ADR-005,
+  NFR-MAINT-002). (2) **End-to-end UI smoke tests** via Playwright (ADR-006),
+  run headless in CI, over the **critical user flows** — thin happy-path
+  coverage that the DOM-free core tests structurally cannot reach (turn
+  rendering, the AI move delay, navigation, result banners). The named critical
+  flows:
+  - **CF-1 — Play a game**: from Setup choose mode/difficulty/side → play moves
+    (human and, in vs-Computer, the AI) → reach a **win** and a **draw** → New
+    Game / Menu. Realizes UC-01, UC-02, UC-03, UC-04, UC-05.
+  - **CF-2 — Review & reset statistics**: open the stats view → see W/L/D tallies
+    and match history → reset with confirmation. Realizes UC-06, UC-07.
+
+  Per-feature **detailed-design mints an E2E task (flow-aware)** when a feature
+  completes a segment of a named critical flow — extending the smoke spec to
+  what the flow can then demonstrably do end-to-end, not re-testing stubs. The
+  theme toggle (UC-08) is deliberately **not** a critical flow (cosmetic, no
+  state/outcome). Because CF-1 is already shippable (FEAT-001/002), standing up
+  the Playwright harness + the first CF-1 smoke is **engineering-foundations
+  work** — see the plan's foundations (implementation-planning amendment).
 - **Observability** — none required (no backend, no telemetry, privacy-first).
   Development uses console diagnostics only.
 - **Performance & scaling** — "scaling" is per-client and constant: a 3×3 board
@@ -265,6 +293,42 @@ Vite's content-hashed filenames; the app runs offline after first load
   ecosystem (acceptable, non-critical lock-in).
 - **Requirements addressed:** NFR-MAINT-002.
 
+### ADR-006 — Playwright for UI/E2E smoke tests
+- **Status:** Accepted (2026-08-07 amendment)
+- **Context:** ADR-005 covers the DOM-free core, but the UI shell — turn
+  rendering, the AI move delay/auto-move, navigation (Setup ↔ Game ↔ Stats),
+  result banners and the winning-line highlight — has **no automated coverage**.
+  FEAT-001 and FEAT-002 were UI-verified only by manual browser observation
+  (each acceptance report logged this as a minor finding). As the UI surface
+  grows (stats, reset dialog, theming) manual-only verification stops scaling and
+  leaves regressions uncaught.
+- **Decision:** Adopt **Playwright** for a thin tier of **end-to-end UI smoke
+  tests** over the critical flows named in §8 (CF-1, CF-2), running the built app
+  headless in CI. Scope is happy-path smoke — prove the flow works end-to-end —
+  **not** exhaustive component testing (the core keeps that in unit tests).
+- **Options considered:**
+  - **(a) Playwright** — real browser (own headless Chromium, no extension),
+    autonomous in CI, screenshots for debugging. Cost: a dev dependency, a
+    browser download in CI, and a second runner alongside Vitest.
+  - **(b) jsdom + Vitest** — lighter (in the existing runner), but a *simulated*
+    DOM: no real layout/CSS/paint, so it can't verify rendering, the highlight,
+    or timing-based behavior faithfully.
+  - **(c) Manual browser verification only** — status quo; zero tooling but no
+    regression net and doesn't scale.
+  Chose (a): faithful real-browser verification is what the UI acceptance
+  actually needs; (b) can't see what UI regressions look like; (c) is what this
+  ADR exists to fix.
+- **Consequences:** Real UI regression coverage for the critical flows, runnable
+  in CI without the Claude-in-Chrome extension. Adds a browser download to CI and
+  a second test runner to maintain; keep the E2E suite **thin** (smoke, not
+  sprawl) so it stays fast and low-flake. Realizing it is engineering-foundations
+  work (Playwright harness + CF-1 smoke, backfilled since CF-1 already ships) plus
+  per-feature flow-aware E2E tasks from detailed-design.
+- **Requirements addressed:** NFR-MAINT-002 (extends the automated-test mandate
+  to the UI layer); supports UC-01..UC-07 (CF-1, CF-2). No new NFR is minted here
+  — if a formal "critical UI flows shall have automated E2E smoke tests" NFR is
+  wanted, that is a separate requirements-engineering amendment.
+
 ## 10. Quality Requirements
 
 | Scenario | Target | Source |
@@ -275,6 +339,7 @@ Vite's content-hashed filenames; the app runs offline after first load
 | `localStorage` disabled/full | App still playable; stats non-persistent, no crash | NFR-REL-002 |
 | Hard AI over many games | Never loses (only wins or draws) | FR-AI-003 |
 | Corrupt/old stored data on load | Resets to defaults, no crash | NFR-REL-001 |
+| A critical UI flow (CF-1/CF-2) regresses | Playwright smoke fails in CI before merge | ADR-006, NFR-MAINT-002 |
 
 ## 11. Risks and Technical Debt
 
@@ -288,4 +353,9 @@ Vite's content-hashed filenames; the app runs offline after first load
 - **Assumption:** the 3×3 minimax is cheap enough to run un-memoized within
   budget. Holds comfortably for 3×3; would need revisiting only if board variants
   (out of scope) were ever added.
+- **E2E maintenance & flake** (from ADR-006) — a second test runner plus a
+  browser download in CI, and E2E tests are flakier than unit tests. Mitigation:
+  keep the Playwright suite **thin** (smoke over CF-1/CF-2 only), assert on stable
+  roles/text not pixels, and treat any flake as a defect. CF-1's smoke is a
+  foundations backfill (the flow already ships in FEAT-001/002).
 ```
