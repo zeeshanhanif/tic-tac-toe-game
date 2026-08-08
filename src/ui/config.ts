@@ -2,9 +2,11 @@
 // two-player uses `mode` only; vs-computer adds difficulty + which side the
 // human plays (FEAT-002). Hard difficulty is gated until FEAT-003.
 
-import type { Mark, Difficulty } from "../core/index.ts";
+import type { Mark, Difficulty, GameMode } from "../core/index.ts";
 
-export type GameMode = "two-player" | "vs-computer";
+// GameMode now lives in core (persisted MatchRecord field); re-export for
+// existing ui call-sites (FEAT-004 D3).
+export type { GameMode };
 
 export interface GameConfig {
   mode: GameMode;
