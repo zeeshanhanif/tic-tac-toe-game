@@ -5,7 +5,10 @@ import {
   emptyStatsState,
   recordResult,
   resultOf,
+  summarize,
+  filterHistory,
   type MatchRecord,
+  type StatsState,
 } from "./stats.ts";
 
 const at = (result: MatchRecord["result"], over: Partial<MatchRecord> = {}): MatchRecord => ({
@@ -71,5 +74,49 @@ describe("resultOf — perspective mapping", () => {
   });
   it("throws if the game is not over", () => {
     expect(() => resultOf({ kind: "in-progress" }, "X")).toThrow();
+  });
+});
+
+function build(): StatsState {
+  let s = emptyStatsState();
+  s = recordResult(s, { mode: "two-player", result: "win", timestamp: 1 });
+  s = recordResult(s, { mode: "vs-computer", difficulty: "hard", result: "loss", timestamp: 2 });
+  s = recordResult(s, { mode: "vs-computer", difficulty: "easy", result: "win", timestamp: 3 });
+  s = recordResult(s, { mode: "two-player", result: "draw", timestamp: 4 });
+  return s;
+}
+
+describe("summarize — W/L/D by filter (AC-1, AC-5, FR-STATS-003)", () => {
+  it("aggregates all modes", () => {
+    expect(summarize(build(), "all")).toEqual({ wins: 2, losses: 1, draws: 1 });
+  });
+  it("filters to two-player", () => {
+    expect(summarize(build(), "two-player")).toEqual({ wins: 1, losses: 0, draws: 1 });
+  });
+  it("filters to vs-computer (sum of difficulties)", () => {
+    expect(summarize(build(), "vs-computer")).toEqual({ wins: 1, losses: 1, draws: 0 });
+  });
+  it("empty store → zeroed counts (AC-3)", () => {
+    expect(summarize(emptyStatsState(), "all")).toEqual({ wins: 0, losses: 0, draws: 0 });
+  });
+});
+
+describe("filterHistory — chronological, newest first (AC-2, AC-5, FR-STATS-004, D3)", () => {
+  it("returns all matches newest-first", () => {
+    expect(filterHistory(build(), "all").map((r) => r.timestamp)).toEqual([4, 3, 2, 1]);
+  });
+  it("filters two-player, newest-first", () => {
+    expect(filterHistory(build(), "two-player").map((r) => r.timestamp)).toEqual([4, 1]);
+  });
+  it("filters vs-computer, newest-first", () => {
+    expect(filterHistory(build(), "vs-computer").map((r) => r.timestamp)).toEqual([3, 2]);
+  });
+  it("empty store → [] (AC-3)", () => {
+    expect(filterHistory(emptyStatsState(), "all")).toEqual([]);
+  });
+  it("does not mutate the stored history", () => {
+    const s = build();
+    filterHistory(s, "all");
+    expect(s.history.map((r) => r.timestamp)).toEqual([1, 2, 3, 4]); // still oldest-first
   });
 });

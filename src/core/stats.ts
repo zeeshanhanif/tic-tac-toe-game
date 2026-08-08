@@ -61,6 +61,36 @@ export function resultOf(status: GameStatus, perspective: Mark): GameResult {
   throw new Error("resultOf: game is not over");
 }
 
+// --- Read helpers for the stats view (FEAT-005, pure) ---
+
+export type StatsFilter = "all" | "two-player" | "vs-computer";
+
+function addWLD(a: WLD, b: WLD): WLD {
+  return { wins: a.wins + b.wins, losses: a.losses + b.losses, draws: a.draws + b.draws };
+}
+
+/** Aggregate W/L/D for the selected filter (FR-STATS-003). */
+export function summarize(state: StatsState, filter: StatsFilter): WLD {
+  const { twoPlayer, vsComputer } = state.stats;
+  const vsAll = addWLD(addWLD(vsComputer.easy, vsComputer.medium), vsComputer.hard);
+  switch (filter) {
+    case "two-player":
+      return { ...twoPlayer };
+    case "vs-computer":
+      return vsAll;
+    case "all":
+      return addWLD(twoPlayer, vsAll);
+  }
+}
+
+/** History filtered by mode, newest first (stored oldest-first) (FR-STATS-004, D3). */
+export function filterHistory(state: StatsState, filter: StatsFilter): MatchRecord[] {
+  const mode: GameMode | null =
+    filter === "two-player" ? "two-player" : filter === "vs-computer" ? "vs-computer" : null;
+  const matches = mode === null ? state.history : state.history.filter((r) => r.mode === mode);
+  return [...matches].reverse();
+}
+
 /** Pure: increment the right W/L/D bucket and append the record (FR-STATS-001/002). */
 export function recordResult(state: StatsState, record: MatchRecord): StatsState {
   const key = record.result === "win" ? "wins" : record.result === "loss" ? "losses" : "draws";
