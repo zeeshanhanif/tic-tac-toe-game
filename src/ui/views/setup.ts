@@ -57,17 +57,15 @@ export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
   const diffField = el("div", "field");
   diffField.append(el("div", "label", "Difficulty"));
   const seg = el("div", "seg");
-  const diffButtons: [Difficulty, string, boolean][] = [
-    ["easy", "Easy", true],
-    ["medium", "Medium", true],
-    ["hard", "Hard", false], // disabled until FEAT-003
+  const diffButtons: [Difficulty, string][] = [
+    ["easy", "Easy"],
+    ["medium", "Medium"],
+    ["hard", "Hard"], // enabled in FEAT-003 (minimax)
   ];
   const diffEls = new Map<Difficulty, HTMLButtonElement>();
-  for (const [value, text, enabled] of diffButtons) {
+  for (const [value, text] of diffButtons) {
     const btn = el("button", undefined, text);
     btn.type = "button";
-    btn.disabled = !enabled;
-    if (!enabled) btn.title = "Hard arrives in FEAT-003";
     btn.addEventListener("click", () => {
       difficulty = value;
       sync();
@@ -75,7 +73,12 @@ export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
     diffEls.set(value, btn);
     seg.append(btn);
   }
-  const diffNote = el("div", "note", "Easy plays randomly; Medium blocks your wins. Hard — coming soon.");
+  const DIFF_NOTES: Record<Difficulty, string> = {
+    easy: "Easy plays a random move.",
+    medium: "Medium blocks your winning moves.",
+    hard: "Hard plays perfectly — the best you can do is draw.",
+  };
+  const diffNote = el("div", "note", DIFF_NOTES.medium);
   diffField.append(seg, diffNote);
 
   // --- You play as (vs-computer only) ---
@@ -119,7 +122,8 @@ export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
     const vsComputer = mode === "vs-computer";
     diffField.hidden = !vsComputer;
     sideField.hidden = !vsComputer;
-    for (const [value, btn] of diffEls) btn.classList.toggle("on", value === difficulty && !btn.disabled);
+    for (const [value, btn] of diffEls) btn.classList.toggle("on", value === difficulty);
+    diffNote.textContent = DIFF_NOTES[difficulty];
     for (const [value, pill] of sideEls) {
       const s = value === humanMark;
       pill.classList.toggle("sel", s);
