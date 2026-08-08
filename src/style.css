@@ -123,6 +123,11 @@ body {
   flex-direction: column;
   gap: var(--space-5);
 }
+/* DEF-001: the `hidden` attribute must win over `.field { display: flex }`
+   (a class selector otherwise overrides the UA `[hidden]{display:none}` rule). */
+.field[hidden] {
+  display: none;
+}
 .label {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-heavy);
