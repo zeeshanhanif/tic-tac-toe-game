@@ -13,7 +13,7 @@
     history; (b) a fresh store over the same backend loads zeroed data
     (persisted). `npm test` green. **Serves AC-3, AC-5.**
 
-- [ ] **T2 — Confirm dialog component (`ui/views/confirm-dialog.ts`).** New
+- [x] **T2 — Confirm dialog component (`ui/views/confirm-dialog.ts`).** New
   reusable `openConfirmDialog(opts)` using native `<dialog>` + `showModal()`
   (Design §3.2, §7 D2): title, body, danger confirm + ghost cancel buttons;
   Esc / backdrop / cancel close without `onConfirm`; confirm calls `onConfirm`
