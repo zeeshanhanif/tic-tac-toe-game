@@ -472,3 +472,141 @@ body {
   grid-template-columns: 1fr auto;
   gap: var(--space-6);
 }
+
+/* ---- Stats view (SCR-WEB-004) ---- */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  padding: var(--space-4) var(--space-7);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+  box-shadow: var(--elevation-card);
+  cursor: pointer;
+  min-height: var(--layout-touchTargetMin);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+.tile {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--elevation-card);
+}
+.tile .num {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+.tile .lbl {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-heavy);
+  color: var(--color-mutedStrong);
+  text-transform: uppercase;
+  letter-spacing: var(--font-tracking-wide);
+}
+.tile.win .num {
+  color: var(--color-win);
+}
+.tile.loss .num {
+  color: var(--color-o);
+}
+.tile.draw .num {
+  color: var(--color-muted); /* large text — AA exemption */
+}
+
+.history {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--elevation-card);
+  overflow: hidden;
+}
+.hrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-7) var(--space-8);
+  border-top: 1px solid var(--color-line);
+}
+.hrow:first-child {
+  border-top: none;
+}
+.rbadge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-heavy);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-pill);
+  flex: none;
+}
+.rbadge.win {
+  background: var(--color-winSoft);
+  color: var(--color-win);
+}
+.rbadge.loss {
+  background: var(--color-oSoft);
+  color: var(--color-o);
+}
+.rbadge.draw {
+  background: var(--color-surface2);
+  color: var(--color-mutedStrong);
+}
+.hmeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.hmeta .mt {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+.hmeta .ms {
+  font-size: var(--font-size-xs);
+  color: var(--color-mutedStrong);
+  font-weight: var(--font-weight-medium);
+}
+.htime {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-mutedStrong);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+.empty-msg {
+  padding: var(--space-16) var(--space-8);
+  text-align: center;
+  color: var(--color-mutedStrong);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- Footer "View stats" link (SCR-WEB-001/002 entry to stats) ---- */
+.footer {
+  display: flex;
+  justify-content: center;
+}
+.footer .link {
+  background: none;
+  border: none;
+  font-family: inherit;
+  color: var(--color-mutedStrong);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  border-bottom: 2px solid var(--color-line);
+  padding: var(--space-1) 0 var(--space-2);
+}
