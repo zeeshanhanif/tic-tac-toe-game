@@ -59,4 +59,28 @@ test.describe("CF-1 — Play a game", () => {
     await page.getByRole("button", { name: "Menu" }).click();
     await expect(page.getByRole("button", { name: "Start Game" })).toBeVisible();
   });
+
+  test("vs-Computer (Hard): AI never loses — the human never wins (FEAT-003)", async ({ page }) => {
+    await page.goto("/");
+    await page.getByText("Vs. Computer").click();
+    await page.getByRole("button", { name: "Hard" }).click(); // enabled in FEAT-003
+    await page.getByRole("button", { name: "Start Game" }).click();
+
+    // Human (X) plays the first available cell each turn; the Hard AI (O)
+    // auto-responds after its delay. Play until a result banner appears.
+    for (let turn = 0; turn < 12; turn++) {
+      if ((await page.locator(".result").count()) > 0) break;
+      const playable = page.locator(".cell.playable");
+      if ((await playable.count()) === 0) {
+        await page.waitForTimeout(300); // AI thinking — board locked
+        continue;
+      }
+      await playable.first().click();
+      await page.waitForTimeout(600); // let the AI take its turn
+    }
+
+    await expect(page.locator(".result")).toBeVisible();
+    // Optimal Hard play never loses → the human (X) never wins (draw or O wins).
+    await expect(page.getByText("X wins!")).toHaveCount(0);
+  });
 });

@@ -31,13 +31,14 @@
         "corrections": [
           "small essential text (.mdesc/.note): --muted → --color-mutedStrong (AA, design.md §5/§9)",
           "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)",
-          "FEAT-002: Hard difficulty option present but disabled — playable in FEAT-003 (FR-AI-003)"
+          "FEAT-002: Hard difficulty option present but disabled (slice boundary) — enabled in FEAT-003",
+          "FEAT-003: Hard enabled — difficulty control now matches the source (all three selectable)"
         ],
         "escalations": []
       },
       "status": "designed",
       "designed_at": "2026-08-06",
-      "updated_by": ["FEAT-002 (vs-computer variant)"]
+      "updated_by": ["FEAT-002 (vs-computer variant)", "FEAT-003 (Hard enabled)"]
     },
     "SCR-WEB-002": {
       "name": "Game — In Play",
@@ -116,6 +117,40 @@
       },
       "status": "designed",
       "designed_at": "2026-08-06"
+    },
+    "SCR-WEB-004": {
+      "name": "Statistics & History",
+      "surface": "WEB",
+      "feature": "FEAT-005",
+      "strategy": "registered",
+      "source": {
+        "tool": "claude-design",
+        "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Stats Screen.dc.html)"
+      },
+      "states": {
+        "covered": ["populated", "filtered by mode"],
+        "gaps": ["reset control (button + confirm dialog) → FEAT-006 (SCR-WEB-005)"],
+        "supplements": [
+          {
+            "state": "empty",
+            "strategy": "code-native",
+            "source": "features/FEAT-005-stats-view/ui-design.md#scr-web-004--statistics--history"
+          }
+        ]
+      },
+      "contract_bindings": ["statsStore.snapshot", "core.summarize", "core.filterHistory"],
+      "conformance": {
+        "result": "pass",
+        "corrections": [
+          "small text (.tile .lbl, .hmeta .ms, .htime) --muted → --color-mutedStrong (AA, design.md §5/§9); large draw numeral keeps --muted",
+          "draw result-badge bg raw #EEEAE1 → --color-surface2 (token) with --color-mutedStrong text",
+          "reset button + note omitted — FEAT-006 (SCR-WEB-005)",
+          "added always-visible focus rings (back pill, filter) — design.md §9"
+        ],
+        "escalations": []
+      },
+      "status": "designed",
+      "designed_at": "2026-08-08"
     }
   }
 }

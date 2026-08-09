@@ -5,17 +5,23 @@
 // architecture §5 keeps timers in the shell). FEAT-001 two-player + FEAT-002 AI.
 
 import { el, topbar } from "../dom.ts";
-import { newGame, playMove, chooseMove, type GameState, type Mark } from "../../core/index.ts";
+import { newGame, playMove, chooseMove, resultOf, type GameState, type Mark } from "../../core/index.ts";
 import { log } from "../../infra/logger.ts";
+import type { StatsStore } from "../../infra/stats-store.ts";
 import { PLAYER_LABELS, type GameConfig } from "../config.ts";
 
 interface GameViewHandlers {
   onMenu: () => void; // return to Setup (FR-GAME-012)
+  onViewStats: () => void; // open the stats view (FR-UI-002)
 }
 
 const AI_DELAY_MS = 400; // brief perceptible delay (FR-AI-004)
 
-export function createGameView(config: GameConfig, handlers: GameViewHandlers): HTMLElement {
+export function createGameView(
+  config: GameConfig,
+  handlers: GameViewHandlers,
+  statsStore: StatsStore,
+): HTMLElement {
   const vsComputer = config.mode === "vs-computer";
   const humanMark: Mark = config.humanMark ?? "X";
   const aiMark: Mark = humanMark === "X" ? "O" : "X";
@@ -24,6 +30,7 @@ export function createGameView(config: GameConfig, handlers: GameViewHandlers): 
   let state: GameState = newGame("X"); // X first — FR-GAME-005
   let aiThinking = false;
   let aiTimer: ReturnType<typeof setTimeout> | null = null;
+  let recorded = false; // guard: record each finished game exactly once (FR-STATS-007)
 
   const root = el("section", "view");
 
@@ -120,12 +127,28 @@ export function createGameView(config: GameConfig, handlers: GameViewHandlers): 
     return actions;
   }
 
+  // Record the finished game once, at the moment it ends (FR-STATS-007). Result
+  // is from the human's view in vs-Computer, Player 1 (X)'s in 2-player (D2).
+  function recordIfEnded(): void {
+    if (recorded || state.status.kind === "in-progress") return;
+    const perspective: Mark = vsComputer ? humanMark : "X";
+    statsStore.record({
+      mode: config.mode,
+      difficulty: vsComputer ? difficulty : undefined,
+      result: resultOf(state.status, perspective),
+      timestamp: Date.now(),
+    });
+    recorded = true;
+    log("stats.record", { mode: config.mode, result: state.status.kind });
+  }
+
   function onCellClick(index: number): void {
     if (aiThinking || !isHumanTurn()) return; // locked during AI turn (NFR-REL-001)
     const { state: next, applied } = playMove(state, index);
     if (!applied) return; // occupied or game over — ignored (FR-GAME-003/004)
     state = next;
     log("cell.place", { index, status: state.status.kind });
+    recordIfEnded();
     render();
     scheduleAIIfNeeded();
   }
@@ -133,6 +156,7 @@ export function createGameView(config: GameConfig, handlers: GameViewHandlers): 
   function startNewGame(): void {
     cancelAI();
     state = newGame("X");
+    recorded = false; // fresh game — allow the next end to record
     log("game.new", { mode: config.mode });
     render();
     scheduleAIIfNeeded(); // AI opens if the human chose O
@@ -157,13 +181,30 @@ export function createGameView(config: GameConfig, handlers: GameViewHandlers): 
       const { state: next, applied } = playMove(state, move);
       if (applied) state = next;
       log("ai.move", { move, difficulty, status: state.status.kind });
+      recordIfEnded();
       render();
       scheduleAIIfNeeded(); // no-op unless somehow still AI's turn
     }, AI_DELAY_MS);
   }
 
+  function renderFooter(): HTMLElement {
+    const footer = el("div", "footer");
+    const link = el("button", "link", "View stats & history"); // FR-UI-002
+    link.type = "button";
+    link.addEventListener("click", handlers.onViewStats);
+    footer.append(link);
+    return footer;
+  }
+
   function render(): void {
-    root.replaceChildren(topbar(), renderScores(), renderStatusBar(), renderBoard(), renderActions());
+    root.replaceChildren(
+      topbar(),
+      renderScores(),
+      renderStatusBar(),
+      renderBoard(),
+      renderActions(),
+      renderFooter(),
+    );
   }
 
   render();

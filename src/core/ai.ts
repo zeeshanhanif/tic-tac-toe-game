@@ -3,7 +3,7 @@
 // deterministically unit-testable. The move delay / auto-move orchestration is
 // UI (architecture §5), not here. Hard (minimax, FR-AI-003) is FEAT-003.
 
-import { applyMove, BOARD_SIZE, type Board, type Mark } from "./board.ts";
+import { applyMove, evaluateStatus, BOARD_SIZE, type Board, type Mark } from "./board.ts";
 
 export type Difficulty = "easy" | "medium" | "hard";
 
@@ -61,8 +61,66 @@ export function chooseMove(
       return randomOf(moves, rng); // else random
     }
     case "hard":
-      // TODO(FEAT-003): minimax (FR-AI-003). Unreachable in FEAT-002 — the UI
-      // disables Hard until FEAT-003 (technical-design D3).
-      throw new Error("Hard AI is not implemented until FEAT-003");
+      return bestMinimaxMove(board, mark); // FR-AI-003 — optimal, never loses
   }
+}
+
+/**
+ * The move maximizing `mark`'s minimax value. Deterministic — first optimal move
+ * on ties (rng is intentionally ignored for Hard). FR-AI-003.
+ */
+function bestMinimaxMove(board: Board, mark: Mark): number {
+  const memo = new Map<string, number>(); // shared across candidates — transpositions reuse
+  const moves = legalMoves(board);
+  let best = -Infinity;
+  let bestMove = moves[0];
+  for (const i of moves) {
+    const score = minimax(applyMove(board, i, mark).board, mark, other(mark), 1, memo);
+    if (score > best) {
+      best = score;
+      bestMove = i;
+    }
+  }
+  return bestMove;
+}
+
+/**
+ * Minimax value of `board` from `aiMark`'s perspective, with `toMove` to play.
+ * +(10 - depth) if aiMark wins, (depth - 10) if it loses, 0 for a draw —
+ * depth-weighted so the AI prefers faster wins and slower losses. Full-tree.
+ *
+ * Memoized by (board, toMove) (architecture §11): a board uniquely determines
+ * how many marks are placed, hence the depth, so cached values are exact and
+ * transpositions are shared — capping work at ~5,478 positions (DEF-002).
+ */
+function minimax(
+  board: Board,
+  aiMark: Mark,
+  toMove: Mark,
+  depth: number,
+  memo: Map<string, number>,
+): number {
+  const status = evaluateStatus(board);
+  if (status.kind === "won") return status.mark === aiMark ? 10 - depth : depth - 10;
+  if (status.kind === "draw") return 0;
+
+  const key = board.join(",") + "|" + toMove;
+  const cached = memo.get(key);
+  if (cached !== undefined) return cached;
+
+  const moves = legalMoves(board);
+  let best: number;
+  if (toMove === aiMark) {
+    best = -Infinity;
+    for (const i of moves) {
+      best = Math.max(best, minimax(applyMove(board, i, toMove).board, aiMark, other(toMove), depth + 1, memo));
+    }
+  } else {
+    best = Infinity;
+    for (const i of moves) {
+      best = Math.min(best, minimax(applyMove(board, i, toMove).board, aiMark, other(toMove), depth + 1, memo));
+    }
+  }
+  memo.set(key, best);
+  return best;
 }
