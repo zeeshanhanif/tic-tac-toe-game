@@ -12,6 +12,7 @@ import { PLAYER_LABELS, type GameConfig } from "../config.ts";
 
 interface GameViewHandlers {
   onMenu: () => void; // return to Setup (FR-GAME-012)
+  onViewStats: () => void; // open the stats view (FR-UI-002)
 }
 
 const AI_DELAY_MS = 400; // brief perceptible delay (FR-AI-004)
@@ -186,8 +187,24 @@ export function createGameView(
     }, AI_DELAY_MS);
   }
 
+  function renderFooter(): HTMLElement {
+    const footer = el("div", "footer");
+    const link = el("button", "link", "View stats & history"); // FR-UI-002
+    link.type = "button";
+    link.addEventListener("click", handlers.onViewStats);
+    footer.append(link);
+    return footer;
+  }
+
   function render(): void {
-    root.replaceChildren(topbar(), renderScores(), renderStatusBar(), renderBoard(), renderActions());
+    root.replaceChildren(
+      topbar(),
+      renderScores(),
+      renderStatusBar(),
+      renderBoard(),
+      renderActions(),
+      renderFooter(),
+    );
   }
 
   render();

@@ -9,6 +9,7 @@ import type { GameConfig, GameMode } from "../config.ts";
 
 interface SetupViewHandlers {
   onStart: (config: GameConfig) => void; // FR-MODE-004
+  onViewStats: () => void; // open the stats view (FR-UI-002)
 }
 
 export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
@@ -131,7 +132,13 @@ export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
     }
   }
 
+  const footer = el("div", "footer");
+  const statsLink = el("button", "link", "View stats & history"); // FR-UI-002
+  statsLink.type = "button";
+  statsLink.addEventListener("click", () => handlers.onViewStats());
+  footer.append(statsLink);
+
   sync();
-  root.append(topbar(), hero, modeField, diffField, sideField, startBtn);
+  root.append(topbar(), hero, modeField, diffField, sideField, startBtn, footer);
   return root;
 }
