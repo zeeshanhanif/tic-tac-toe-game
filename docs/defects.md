@@ -6,6 +6,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | ID | Date | Owning FR / feature | Severity | Summary | Status |
 | :- | :--- | :------------------ | :------- | :------ | :----- |
 | DEF-001 | 2026-08-08 | FR-MODE-002/003 · FEAT-002 (setup) | Cosmetic | Two-player mode shows the vs-Computer-only Difficulty + "You play as" controls | Fixed |
+| DEF-002 | 2026-08-09 | FR-AI-003 / NFR-PERF-002 · FEAT-003 (Hard AI) | CI-blocking | Un-memoized minimax exceeds the 500 ms perf test on slow CI hardware (931 ms observed) | Fixed |
 
 ---
 
@@ -35,3 +36,28 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   Difficulty control and vs-Computer reveals it.
 - **Verification:** fix applied, E2E green (setup.spec + CF-1), and confirmed by
   browser observation that two-player no longer shows the controls.
+
+## DEF-002 — Minimax perf test flakes on slow CI hardware
+
+- **Observed:** the FEAT-003 perf test ("Hard computes the first move within
+  500 ms", AC-5 / NFR-PERF-002) **failed in GitHub CI**: the empty-board minimax
+  took **931 ms** > 500 ms. Passes locally (faster machine).
+- **Discovered:** GitHub Actions `Run npm test`, 2026-08-09.
+- **Owning feature:** FEAT-003 (Hard AI). FEAT-003's acceptance report already
+  flagged AC-5 perf as "machine-indicative" — this is that risk materializing.
+- **Impact:** CI-blocking (red pipeline). No product defect — Hard plays
+  correctly and, in a real browser (warm V8), well under budget; but the
+  un-memoized full-tree search is slow on a shared CI runner.
+- **Root cause:** `minimax` re-explores the whole game tree un-memoized
+  (~549k node visits from the empty board). Slow single-thread CI hardware
+  pushes the worst-case first move over the 500 ms assertion.
+- **Fix:** **memoize** minimax by board+turn within each `chooseMove` call
+  (architecture §11: "no memoization needed but trivial to add"). There are only
+  ~5,478 reachable (board, to-move) positions, each computed once — near-instant
+  on any hardware. Pure optimization: board uniquely determines depth (= filled
+  cells), so depth-weighted values are cache-correct, and returned values are
+  identical → the optimal move (and the never-lose guarantee) is unchanged.
+- **Regression guard:** the existing perf test (now passes with ~25× margin) +
+  the exhaustive never-lose tests (unchanged, re-run in FEAT-003 re-verification).
+- **Verification:** all 53 unit tests green locally incl. perf; FEAT-003
+  re-verified (never-lose mutation check still bites; perf now robust).
