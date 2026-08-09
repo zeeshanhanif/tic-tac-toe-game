@@ -39,7 +39,7 @@
   - **Done when:** `npx playwright test review-stats` (or `npm run test:e2e`)
     passes headless, including the new reset cases. **Serves AC-2, AC-3, AC-4.**
 
-- [ ] **T5 — Verification task (feature done-check).** Run the full suites fresh:
+- [x] **T5 — Verification task (feature done-check).** Run the full suites fresh:
   `npm test` (unit, incl. T1), `npm run build`, `npm run lint`, and the
   Playwright E2E. Confirm every AC-1..AC-6 is demonstrated by a passing test or
   a recorded in-browser observation. Fix any red; no skips/weakenings.
