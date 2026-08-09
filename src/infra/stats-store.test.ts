@@ -54,4 +54,29 @@ describe("stats-store", () => {
     const store = createStatsStore(createStorageRepo(fakeStore({ [STATS_KEY]: stale })));
     expect(store.snapshot().history).toHaveLength(0);
   });
+
+  // FEAT-006 — reset() (FR-STATS-006, UC-07). AC-3, AC-5.
+  it("reset() clears tallies + history to zeroed state (FEAT-006 AC-3)", () => {
+    const store = createStatsStore(createStorageRepo(fakeStore()));
+    store.record(rec({ mode: "two-player", result: "win" }));
+    store.record(rec({ mode: "vs-computer", difficulty: "hard", result: "loss" }));
+    expect(store.snapshot().history).toHaveLength(2);
+
+    const after = store.reset();
+    expect(after.history).toHaveLength(0);
+    expect(after.stats.twoPlayer).toEqual({ wins: 0, losses: 0, draws: 0 });
+    expect(after.stats.vsComputer.hard).toEqual({ wins: 0, losses: 0, draws: 0 });
+    expect(store.snapshot().history).toHaveLength(0);
+  });
+
+  it("reset() persists: a fresh store over the same backend loads zeroed (FEAT-006 AC-5)", () => {
+    const backend = fakeStore(); // shared localStorage
+    const store = createStatsStore(createStorageRepo(backend));
+    store.record(rec({ mode: "two-player", result: "win" }));
+    store.reset();
+
+    const restored = createStatsStore(createStorageRepo(backend)).snapshot();
+    expect(restored.history).toHaveLength(0);
+    expect(restored.stats.twoPlayer).toEqual({ wins: 0, losses: 0, draws: 0 });
+  });
 });

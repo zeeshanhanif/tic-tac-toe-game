@@ -26,6 +26,7 @@ function loadState(repo: StorageRepo): StatsState {
 export interface StatsStore {
   record(record: MatchRecord): StatsState;
   snapshot(): StatsState;
+  reset(): StatsState;
 }
 
 export function createStatsStore(repo: StorageRepo = createStorageRepo()): StatsStore {
@@ -37,6 +38,11 @@ export function createStatsStore(repo: StorageRepo = createStorageRepo()): Stats
       return state;
     },
     snapshot(): StatsState {
+      return state;
+    },
+    reset(): StatsState {
+      state = emptyStatsState(); // pure core — zeroed, versioned
+      repo.save(STATS_KEY, state); // persist the cleared state (FR-STATS-006)
       return state;
     },
   };
