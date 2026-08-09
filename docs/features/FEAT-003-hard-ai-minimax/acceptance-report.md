@@ -87,3 +87,23 @@ regression guard covers it.
 Accepted → **Test ref appended** with `features/FEAT-003-hard-ai-minimax/acceptance-report.md`
 for FR-AI-003, and appended to FR-MODE-002 (which — with FEAT-002's partial +
 FEAT-003's completing report — is now fully verified).
+
+---
+
+## Re-verification — 2026-08-09 (DEF-002)
+
+> Verdict: **Accepted** (unchanged) · Trigger: DEF-002 (CI perf failure) fix
+
+CI (`Run npm test`) failed AC-5 on GitHub's runner (931 ms > 500 ms) — the
+machine-indicative risk this report flagged. Fix: **memoize minimax** by
+(board, to-move) within each `chooseMove` (`fix(DEF-002)`, commit `ff2131a`).
+
+Re-audited from the fixed HEAD:
+- `npm test` → **53 passed**, incl. the perf test (empty-board Hard move now
+  ~14 ms cold vs 931 ms — ~35× margin under 500 ms).
+- **Never-lose still holds:** the exhaustive self-play tests pass, and the
+  mutation check still bites (a first-legal AI fails them). Memoization returns
+  identical optimal moves (board determines depth → cache-correct), so the
+  never-lose guarantee and tactics (AC-1/2/3/4/7) are unchanged.
+- Verdict remains **Accepted**; AC-5's minor caveat is resolved (perf is now
+  hardware-robust, not just locally indicative).
