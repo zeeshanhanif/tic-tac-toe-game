@@ -32,7 +32,7 @@
     → confirm shows zeroed data; cancel/Esc leaves stats unchanged.
     **Serves AC-1, AC-3, AC-4.**
 
-- [ ] **T4 — Extend the CF-2 E2E smoke (`tests/e2e/review-stats.spec.ts`).** Add
+- [x] **T4 — Extend the CF-2 E2E smoke (`tests/e2e/review-stats.spec.ts`).** Add
   the reset segment (Design §7 D4, ADR-006): play a game → open stats →
   Reset all statistics → **cancel** ⇒ counts unchanged; → **confirm** ⇒ tiles
   `0` + empty-history state. Assert on stable roles/text, keep it smoke.
