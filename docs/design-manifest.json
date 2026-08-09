@@ -128,13 +128,18 @@
         "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Stats Screen.dc.html)"
       },
       "states": {
-        "covered": ["populated", "filtered by mode"],
-        "gaps": ["reset control (button + confirm dialog) → FEAT-006 (SCR-WEB-005)"],
+        "covered": ["populated", "filtered by mode", "reset trigger (FEAT-006)"],
+        "gaps": [],
         "supplements": [
           {
             "state": "empty",
             "strategy": "code-native",
             "source": "features/FEAT-005-stats-view/ui-design.md#scr-web-004--statistics--history"
+          },
+          {
+            "state": "reset-trigger",
+            "strategy": "code-native",
+            "source": "features/FEAT-006-reset-statistics/ui-design.md#scr-web-004-supplement--the-reset-trigger-reset-note--btndanger"
           }
         ]
       },
@@ -144,13 +149,43 @@
         "corrections": [
           "small text (.tile .lbl, .hmeta .ms, .htime) --muted → --color-mutedStrong (AA, design.md §5/§9); large draw numeral keeps --muted",
           "draw result-badge bg raw #EEEAE1 → --color-surface2 (token) with --color-mutedStrong text",
-          "reset button + note omitted — FEAT-006 (SCR-WEB-005)",
+          "FEAT-006: reset trigger added (.btn danger + .reset-note in --color-mutedStrong) — gap closed",
           "added always-visible focus rings (back pill, filter) — design.md §9"
         ],
         "escalations": []
       },
       "status": "designed",
-      "designed_at": "2026-08-08"
+      "designed_at": "2026-08-08",
+      "updated_by": ["FEAT-006 (reset trigger)"]
+    },
+    "SCR-WEB-005": {
+      "name": "Reset Confirmation",
+      "surface": "WEB",
+      "feature": "FEAT-006",
+      "strategy": "code-native",
+      "source": {
+        "tool": "code-native",
+        "locator": "features/FEAT-006-reset-statistics/ui-design.md#scr-web-005--reset-confirmation-modal-dialog"
+      },
+      "states": {
+        "covered": ["open (confirm)", "confirm → zeroed", "cancel / Esc / backdrop → no change"],
+        "gaps": [],
+        "supplements": []
+      },
+      "contract_bindings": ["openConfirmDialog", "statsStore.reset", "statsStore.snapshot"],
+      "conformance": {
+        "result": "pass-with-escalation",
+        "corrections": [
+          "composed from design.md §4 confirmation-dialog prose + .btn danger/ghost variants; no source mockup (design.md §9 known gap)",
+          "body copy uses --color-mutedStrong (AA); title --ink; initial focus on Cancel (non-destructive default)",
+          "native <dialog> showModal() for scrim + focus-trap + Esc-cancel + modal ARIA"
+        ],
+        "escalations": [
+          "E1 (minor) — add --scrim token (--ink at ~40% alpha) toward ux-foundations; interim ::backdrop uses ink-derived rgba. Non-blocking."
+        ]
+      },
+      "status": "designed",
+      "designed_at": "2026-08-09"
     }
   }
 }
