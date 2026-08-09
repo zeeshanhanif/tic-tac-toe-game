@@ -38,14 +38,14 @@ architecture, implementation, and QA phases.
 | FR-STATS-003 | Display stats summary | M | Elicitation | UC-06 | FEAT-005 | features/FEAT-005-stats-view/technical-design.md · ui-design.md | TBD | features/FEAT-005-stats-view/acceptance-report.md |
 | FR-STATS-004 | Display match history | M | Elicitation | UC-06 | FEAT-005 | features/FEAT-005-stats-view/technical-design.md · ui-design.md | TBD | features/FEAT-005-stats-view/acceptance-report.md |
 | FR-STATS-005 | Persist stats in localStorage | M | Elicitation | UC-06 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | features/FEAT-004-persistent-stats/acceptance-report.md |
-| FR-STATS-006 | Reset stats with confirmation | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | TBD |
+| FR-STATS-006 | Reset stats with confirmation | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | features/FEAT-006-reset-statistics/acceptance-report.md |
 | FR-STATS-007 | Update stats at game end | M | Elicitation | UC-04 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | features/FEAT-004-persistent-stats/acceptance-report.md |
 | FR-THEME-001 | Toggle light/dark | M | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
 | FR-THEME-002 | Default to OS color scheme | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
 | FR-THEME-003 | Persist theme choice | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
 | FR-UI-001 | Responsive layout | M | Elicitation | UC-01..08 | Foundations | TBD | TBD | TBD |
 | FR-UI-002 | Navigate game ↔ stats | M | Elicitation | UC-06 | FEAT-005 | features/FEAT-005-stats-view/technical-design.md · ui-design.md | TBD | features/FEAT-005-stats-view/acceptance-report.md |
-| FR-UI-003 | Confirm destructive actions | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | TBD |
+| FR-UI-003 | Confirm destructive actions | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | features/FEAT-006-reset-statistics/acceptance-report.md |
 
 ## Non-Functional Requirements
 
