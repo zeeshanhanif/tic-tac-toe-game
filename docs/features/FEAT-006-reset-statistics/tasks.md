@@ -23,7 +23,7 @@
     boundaries clean — `ui/` only), and a manual/browser check shows the modal
     opens, Esc cancels, focus is trapped. **Serves AC-2, AC-6.**
 
-- [ ] **T3 — Wire reset into the Stats view (`ui/views/stats.ts`).** Add the
+- [x] **T3 — Wire reset into the Stats view (`ui/views/stats.ts`).** Add the
   danger **"Reset all statistics"** control (placement per SCR-WEB-005). On
   activate → `openConfirmDialog({ …, onConfirm: doReset })`; `doReset` calls
   `statsStore.reset()`, re-reads `snapshot()` into the view's state (D1), and
