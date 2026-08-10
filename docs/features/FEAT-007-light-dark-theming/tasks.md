@@ -35,7 +35,7 @@
   - **Done when:** `npx playwright test theme` passes headless; full E2E suite
     still green. **Serves AC-1, AC-2, AC-4.**
 
-- [ ] **T5 — Verification task (feature done-check).** Run fresh: `npm test`,
+- [x] **T5 — Verification task (feature done-check).** Run fresh: `npm test`,
   `npm run build`, `npm run lint`, `npx playwright test`. Confirm AC-1..AC-6 each
   demonstrated by a passing test or recorded in-browser observation (AC-6:
   localStorage-unavailable path — StorageRepo fallback, spot-checked). Fix any
