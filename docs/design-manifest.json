@@ -140,23 +140,29 @@
             "state": "reset-trigger",
             "strategy": "code-native",
             "source": "features/FEAT-006-reset-statistics/ui-design.md#scr-web-004-supplement--the-reset-trigger-reset-note--btndanger"
+          },
+          {
+            "state": "theme-toggle",
+            "strategy": "code-native",
+            "source": "features/FEAT-007-light-dark-theming/ui-design.md#scr-web-004-supplement--toggle-in-the-stats-header"
           }
         ]
       },
-      "contract_bindings": ["statsStore.snapshot", "core.summarize", "core.filterHistory"],
+      "contract_bindings": ["statsStore.snapshot", "core.summarize", "core.filterHistory", "theme.getTheme", "theme.setTheme"],
       "conformance": {
         "result": "pass",
         "corrections": [
           "small text (.tile .lbl, .hmeta .ms, .htime) --muted → --color-mutedStrong (AA, design.md §5/§9); large draw numeral keeps --muted",
           "draw result-badge bg raw #EEEAE1 → --color-surface2 (token) with --color-mutedStrong text",
           "FEAT-006: reset trigger added (.btn danger + .reset-note in --color-mutedStrong) — gap closed",
+          "FEAT-007: theme toggle added to the Stats header (global-toggle presence; .toggle unchanged)",
           "added always-visible focus rings (back pill, filter) — design.md §9"
         ],
         "escalations": []
       },
       "status": "designed",
       "designed_at": "2026-08-08",
-      "updated_by": ["FEAT-006 (reset trigger)"]
+      "updated_by": ["FEAT-006 (reset trigger)", "FEAT-007 (theme toggle in header)"]
     },
     "SCR-WEB-005": {
       "name": "Reset Confirmation",
