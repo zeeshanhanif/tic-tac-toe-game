@@ -29,7 +29,7 @@
   - **Done when:** `npx playwright test setup` passes headless; full E2E suite
     still green. **Serves AC-1, AC-2, AC-4.**
 
-- [ ] **T4 — Verification task (feature done-check).** Run fresh: `npm test`,
+- [x] **T4 — Verification task (feature done-check).** Run fresh: `npm test`,
   `npm run build`, `npm run lint`, `npx playwright test`. Confirm AC-1..AC-4 each
   demonstrated by a passing test or recorded in-browser observation (AC-3
   corrupt-data path — `parseLastSettings` unit + StorageRepo fallback). Fix any
