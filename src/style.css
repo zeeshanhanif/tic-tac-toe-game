@@ -51,6 +51,14 @@ body {
   justify-content: space-between;
   gap: var(--space-8);
 }
+/* Right-side cluster (Stats header: Back + theme toggle) — FEAT-007. */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
 .wordmark {
   display: flex;

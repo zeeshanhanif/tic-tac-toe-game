@@ -22,7 +22,7 @@
     toggle switches theme instantly and the choice survives a reload.
     **Serves AC-1, AC-4.**
 
-- [ ] **T3 — Global toggle presence (`ui/views/stats.ts`).** Add the theme
+- [x] **T3 — Global toggle presence (`ui/views/stats.ts`).** Add the theme
   toggle to the Stats header (Setup/Game already have it via `topbar()`), per
   ui-design. Keep the Back control; toggle placed per SCR-WEB-004 header spec.
   - **Done when:** `npm run build` + `npm run lint` pass; in-browser the toggle
