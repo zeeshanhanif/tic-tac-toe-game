@@ -14,7 +14,7 @@
     the settings. `npm test` green, `npm run lint` clean (ui→infra only).
     **Serves AC-2, AC-3.**
 
-- [ ] **T2 — Seed defaults + persist on start (`ui/views/setup.ts`).** On mount,
+- [x] **T2 — Seed defaults + persist on start (`ui/views/setup.ts`).** On mount,
   initialize `mode`/`difficulty` from `loadLastSettings()` (fallback
   two-player/medium); on Start, `saveLastSettings({ mode, difficulty })` before
   `onStart` (Design §3.2, §7 D1/D2). `humanMark` unchanged.
