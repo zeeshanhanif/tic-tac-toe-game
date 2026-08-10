@@ -634,14 +634,6 @@ body {
 }
 
 /* ---- Confirmation dialog (SCR-WEB-005, FEAT-006) ---- */
-/* Interim scrim — TODO(E1): replace with var(--scrim) once ux-foundations adds
-   the token (ui-design.md §Escalations). Derived from --color-ink at ~40%. */
-:root {
-  --scrim: rgba(33, 28, 21, 0.4);
-}
-:root[data-theme="dark"] {
-  --scrim: rgba(0, 0, 0, 0.55);
-}
 .confirm-dialog {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-2xl);
@@ -653,7 +645,7 @@ body {
   max-width: min(340px, calc(100vw - var(--space-8)));
 }
 .confirm-dialog::backdrop {
-  background: var(--scrim);
+  background: var(--color-scrim);
 }
 .confirm-title {
   font-size: var(--font-size-lg);

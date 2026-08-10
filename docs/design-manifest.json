@@ -174,18 +174,18 @@
       },
       "contract_bindings": ["openConfirmDialog", "statsStore.reset", "statsStore.snapshot"],
       "conformance": {
-        "result": "pass-with-escalation",
+        "result": "pass",
         "corrections": [
           "composed from design.md §4 confirmation-dialog prose + .btn danger/ghost variants; no source mockup (design.md §9 known gap)",
           "body copy uses --color-mutedStrong (AA); title --ink; initial focus on Cancel (non-destructive default)",
-          "native <dialog> showModal() for scrim + focus-trap + Esc-cancel + modal ARIA"
+          "native <dialog> showModal() for scrim + focus-trap + Esc-cancel + modal ARIA",
+          "E1 RESOLVED (2026-08-10): --scrim token added to design system (ux-foundations amendment); ::backdrop now uses var(--color-scrim) — no raw values remain"
         ],
-        "escalations": [
-          "E1 (minor) — add --scrim token (--ink at ~40% alpha) toward ux-foundations; interim ::backdrop uses ink-derived rgba. Non-blocking."
-        ]
+        "escalations": []
       },
       "status": "designed",
-      "designed_at": "2026-08-09"
+      "designed_at": "2026-08-09",
+      "updated_by": ["E1 resolution — --scrim token (2026-08-10)"]
     }
   }
 }
