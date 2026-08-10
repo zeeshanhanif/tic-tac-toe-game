@@ -3,6 +3,7 @@
 // aggregation lives in core/stats.ts. FR-STATS-003/004, UC-06. Reset → FEAT-006.
 
 import { el, wordmark } from "../dom.ts";
+import { openConfirmDialog } from "./confirm-dialog.ts";
 import {
   summarize,
   filterHistory,
@@ -29,7 +30,9 @@ function relativeTime(ts: number): string {
 }
 
 export function createStatsView(statsStore: StatsStore, handlers: StatsViewHandlers): HTMLElement {
-  const state: StatsState = statsStore.snapshot();
+  // Reassignable: reset mutates the store mid-view, so the reset path re-reads
+  // the snapshot and re-renders from the fresh (zeroed) state (D1).
+  let state: StatsState = statsStore.snapshot();
   let filter: StatsFilter = "all";
 
   const root = el("section", "view");
@@ -110,8 +113,41 @@ export function createStatsView(statsStore: StatsStore, handlers: StatsViewHandl
     return list;
   }
 
+  // Reset all statistics (SCR-WEB-005) — confirm before clearing (FR-UI-003,
+  // UC-07). On confirm: clear + re-read the zeroed snapshot + re-render (D1).
+  function doReset(): void {
+    statsStore.reset();
+    state = statsStore.snapshot();
+    render();
+  }
+
+  function resetBlock(): HTMLElement {
+    const block = el("div", "reset-block");
+    const note = el("p", "reset-note", "Clears all recorded games on this device.");
+    const btn = el("button", "btn danger", "Reset all statistics");
+    btn.type = "button";
+    btn.addEventListener("click", () =>
+      openConfirmDialog({
+        title: "Reset all statistics?",
+        body: "This permanently clears all win/loss/draw counts and match history on this device. This can't be undone.",
+        confirmLabel: "Reset statistics",
+        onConfirm: doReset,
+      }),
+    );
+    block.append(note, btn);
+    return block;
+  }
+
   function render(): void {
-    root.replaceChildren(topBar(), hero(), filterSeg(), tiles(), el("div", "label", "Recent matches"), history());
+    root.replaceChildren(
+      topBar(),
+      hero(),
+      filterSeg(),
+      tiles(),
+      el("div", "label", "Recent matches"),
+      history(),
+      resetBlock(),
+    );
   }
 
   render();
