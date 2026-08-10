@@ -28,7 +28,7 @@
   - **Done when:** `npm run build` + `npm run lint` pass; in-browser the toggle
     appears and works on the Stats screen. **Serves AC-2.**
 
-- [ ] **T4 — Feature E2E (`tests/e2e/theme.spec.ts`, new).** Not a CF smoke
+- [x] **T4 — Feature E2E (`tests/e2e/theme.spec.ts`, new).** Not a CF smoke
   (architecture §8) — a focused feature test (Design §8): (a) toggling flips
   `html[data-theme]` and persists to `localStorage`; (b) the choice survives
   `page.reload()`; (c) the toggle is present on Setup, Game, and Stats.
