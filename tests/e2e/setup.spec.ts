@@ -23,3 +23,28 @@ test.describe("Setup — mode-gated controls (DEF-001)", () => {
     await expect(page.getByText("Difficulty")).toBeHidden();
   });
 });
+
+test.describe("Setup — remember last settings (FEAT-008)", () => {
+  test("defaults to the last-used mode + difficulty across reload, and starts with them", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    // Start a vs-Computer / Hard game (non-default settings).
+    await page.getByText("Vs. Computer").click();
+    await page.getByRole("button", { name: "Hard" }).click();
+    await page.getByRole("button", { name: "Start Game" }).click();
+    await expect(page.getByText("Hard AI")).toBeVisible();
+
+    // Reload → Setup defaults to the remembered settings (AC-1, AC-2).
+    await page.reload();
+    await expect(page.locator(".mode.sel")).toContainText("Vs. Computer");
+    await expect(page.locator(".seg .on")).toHaveText("Hard");
+    await expect(page.getByText("Difficulty")).toBeVisible();
+
+    // Accept and start immediately → a vs-Computer / Hard game (UC-01 2a, AC-4).
+    await page.getByRole("button", { name: "Start Game" }).click();
+    await expect(page.getByText("Computer", { exact: true })).toBeVisible();
+    await expect(page.getByText("Hard AI")).toBeVisible();
+  });
+});

@@ -22,7 +22,7 @@
     a vs-Computer/Hard game, return to Setup (Menu) → mode+difficulty are
     pre-selected. **Serves AC-1, AC-4.**
 
-- [ ] **T3 — Feature E2E (`tests/e2e/setup.spec.ts`, extend).** Add a
+- [x] **T3 — Feature E2E (`tests/e2e/setup.spec.ts`, extend).** Add a
   remember-settings test (Design §8): start a vs-Computer + Hard game, then
   `page.reload()` → Setup defaults to Vs. Computer with Hard selected, and
   pressing Start immediately begins a vs-Computer/Hard game (AC-1/AC-2/AC-4).
