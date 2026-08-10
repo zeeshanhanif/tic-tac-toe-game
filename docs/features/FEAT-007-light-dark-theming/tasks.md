@@ -14,7 +14,7 @@
     and corrupt values → OS branch (both `prefersDark` true/false). `npm test`
     green, `npm run lint` clean (ui→infra only). **Serves AC-3, AC-5.**
 
-- [ ] **T2 — Wire persistence + apply (dom.ts, main.ts, index.html).** Route
+- [x] **T2 — Wire persistence + apply (dom.ts, main.ts, index.html).** Route
   `themeToggle()` (dom.ts) through `getTheme()`/`setTheme()` (persist + apply,
   no markup change); call `initTheme()` in `main.ts` before `mountShell()`; add
   the anti-FOUC inline `<head>` script to `index.html` (Design §3.2/§3.3, §7 D1).
