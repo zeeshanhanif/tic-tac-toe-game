@@ -32,16 +32,26 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   instead of validating the full `StatsState` shape.
 - **Fix:** a **pure `isValidStatsState(x)` type-guard** in `core/stats.ts`
   (validates `version`, both `stats.twoPlayer` and `stats.vsComputer.{easy,
-  medium,hard}` as WLD triples, and `history` is an array); `loadState` resets to
-  `emptyStatsState()` whenever it fails. Subsumes the old version + truthiness
-  checks. History **element** validation is out of scope (this-fix-only; the
-  reported crash is the missing stats sub-tree).
-- **Regression guard:** `core/stats.test.ts` (isValidStatsState accepts a good
-  state, rejects partial/missing/non-numeric shapes) + `infra/stats-store.test.ts`
-  (partial-corrupt persisted data → resets to empty; a subsequent vs-Computer
-  `record()` no longer throws).
-- **Verification:** failing test written first (partial-corrupt load), then the
-  fix; FEAT-004 re-verified — see its acceptance report's DEF-003 re-verification.
+  medium,hard}` as WLD triples, **and every `history` entry as a well-formed
+  `MatchRecord`** via `isMatchRecord`); `loadState` resets to `emptyStatsState()`
+  whenever it fails. Subsumes the old version + truthiness checks; the narrowing
+  is now sound (every field consumers read is checked).
+- **Scope note (review-driven, 2026-08-11):** history *element* validation was
+  initially scoped out, but the per-feature review gate flagged that a malformed
+  `history` entry still passes → `historyRow`'s `cap(r.result)` crashes the stats
+  view — the same "corrupt shape crashes a consumer" class this defect targets.
+  So the fix was **completed** to validate history elements, honoring the full
+  NFR-REL-001 contract. Still deliberately out of scope: numeric-range checks
+  (negatives / overflow-Infinity via tampering) — see review findings #3/#4,
+  non-crashing data-integrity notes.
+- **Regression guard:** `core/stats.test.ts` (isValidStatsState accepts good
+  states, rejects partial/missing/non-numeric shapes **and malformed history
+  elements**) + `infra/stats-store.test.ts` (partial-corrupt persisted data →
+  resets to empty; a subsequent vs-Computer `record()` no longer throws;
+  **malformed history entry → resets to empty**).
+- **Verification:** failing tests written first (partial-corrupt load, then the
+  malformed-history case), fixed after each; FEAT-004 re-verified — see its
+  acceptance report's DEF-003 re-verification.
 
 ## DEF-001 — Two-player shows vs-Computer controls
 

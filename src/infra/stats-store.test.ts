@@ -78,6 +78,26 @@ describe("stats-store", () => {
     expect(store.snapshot().stats.vsComputer.hard.wins).toBe(1);
   });
 
+  // DEF-003 (completion, review-driven): a valid stats tree with a MALFORMED
+  // history entry must also reset — otherwise the stats view crashes on render.
+  it("resets to empty when a history entry is malformed (DEF-003 history elements)", () => {
+    const badHistory = JSON.stringify({
+      version: 1,
+      stats: {
+        twoPlayer: { wins: 1, losses: 0, draws: 0 },
+        vsComputer: {
+          easy: { wins: 0, losses: 0, draws: 0 },
+          medium: { wins: 0, losses: 0, draws: 0 },
+          hard: { wins: 0, losses: 0, draws: 0 },
+        },
+      },
+      history: [{}], // no mode/result/timestamp
+    });
+    const store = createStatsStore(createStorageRepo(fakeStore({ [STATS_KEY]: badHistory })));
+    expect(store.snapshot().history).toHaveLength(0);
+    expect(store.snapshot().stats.twoPlayer).toEqual({ wins: 0, losses: 0, draws: 0 });
+  });
+
   // FEAT-006 — reset() (FR-STATS-006, UC-07). AC-3, AC-5.
   it("reset() clears tallies + history to zeroed state (FEAT-006 AC-3)", () => {
     const store = createStatsStore(createStorageRepo(fakeStore()));

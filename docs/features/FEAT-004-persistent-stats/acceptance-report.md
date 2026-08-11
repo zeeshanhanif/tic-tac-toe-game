@@ -26,11 +26,21 @@ tests covered *total garbage* and *version mismatch*, but not *partial shape*.
   cases. **No existing test weakened**; the original AC-6 cases (garbage, version
   mismatch) and AC-4 (persist & restore a real game — proving no over-rejection)
   still pass.
-- **Observed green this run:** FEAT-004 suite 30 · whole repo **68 unit** · `tsc`
+- **Review-gate completion (same day):** per `CLAUDE.md`'s quality gate, the
+  DEF-003 fix diff was itself code-reviewed. The review found the guard validated
+  the `history` *array* but not its *elements* — a malformed entry still passed
+  and crashed `historyRow`'s `cap(r.result)` (the same corrupt-shape-crashes-a-
+  consumer class, relocated to history). The fix was **completed**:
+  `isValidStatsState` now validates every history entry as a `MatchRecord`
+  (`isMatchRecord`), and the narrowing is sound. Failing-test-first again (the
+  malformed-history case observed red, then green). Lower-severity review notes
+  (#3 numeric-range, #4 hardcoded difficulties) recorded, not blocking.
+- **Observed green this run:** FEAT-004 suite · whole repo **70 unit** · `tsc`
   build · ESLint (boundaries) · **12 E2E** — all fresh.
-- **Verdict:** **AC-6 now fully covers corrupt-shape reset**; FR-STATS-005
-  persistence and NFR-REL-001/002 hold. FEAT-004 remains **Accepted**; RTM Test
-  ref unchanged (already present). Defect ledger DEF-003 → **Fixed**.
+- **Verdict:** **AC-6 now fully covers corrupt-shape reset** (stats tree *and*
+  history elements); FR-STATS-005 persistence and NFR-REL-001/002 hold. FEAT-004
+  remains **Accepted**; RTM Test ref unchanged (already present). Defect ledger
+  DEF-003 → **Fixed** (completed after review-gate).
 
 ---
 

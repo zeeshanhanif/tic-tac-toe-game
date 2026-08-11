@@ -54,24 +54,40 @@ export function emptyStatsState(): StatsState {
   };
 }
 
+const GAME_MODES: readonly GameMode[] = ["two-player", "vs-computer"];
+const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
+const GAME_RESULTS: readonly GameResult[] = ["win", "loss", "draw"];
+
 function isWLD(x: unknown): x is WLD {
   if (!x || typeof x !== "object") return false;
   const w = x as Record<string, unknown>;
   return typeof w.wins === "number" && typeof w.losses === "number" && typeof w.draws === "number";
 }
 
+function isMatchRecord(x: unknown): x is MatchRecord {
+  if (!x || typeof x !== "object") return false;
+  const r = x as Record<string, unknown>;
+  if (!GAME_MODES.includes(r.mode as GameMode)) return false;
+  if (!GAME_RESULTS.includes(r.result as GameResult)) return false;
+  if (typeof r.timestamp !== "number") return false;
+  // difficulty is optional (vs-computer only); if present it must be valid.
+  if (r.difficulty !== undefined && !DIFFICULTIES.includes(r.difficulty as Difficulty)) return false;
+  return true;
+}
+
 /**
  * Pure type-guard for a persisted StatsState (DEF-003). Validates the full
- * shape — current version, both stat buckets as WLD triples, history an array —
- * so a partially-corrupt object (e.g. a missing `vsComputer` sub-tree) is
- * rejected and the caller resets to defaults (architecture §8 / NFR-REL-001).
- * History *element* shape is not validated here (out of DEF-003's scope).
+ * shape — current version, both stat buckets as WLD triples, and history as an
+ * array of well-formed MatchRecords — so any partially-corrupt object (a missing
+ * `vsComputer` sub-tree *or* a malformed history entry) is rejected and the
+ * caller resets to defaults (architecture §8 / NFR-REL-001). The narrowing is
+ * sound: every field a consumer reads has been checked.
  */
 export function isValidStatsState(x: unknown): x is StatsState {
   if (!x || typeof x !== "object") return false;
   const s = x as Record<string, unknown>;
   if (s.version !== STATS_VERSION) return false;
-  if (!Array.isArray(s.history)) return false;
+  if (!Array.isArray(s.history) || !s.history.every(isMatchRecord)) return false;
   if (!s.stats || typeof s.stats !== "object") return false;
   const stats = s.stats as Record<string, unknown>;
   if (!isWLD(stats.twoPlayer)) return false;

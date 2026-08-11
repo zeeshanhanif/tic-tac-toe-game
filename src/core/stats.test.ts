@@ -153,4 +153,24 @@ describe("isValidStatsState — full-shape guard (DEF-003, NFR-REL-001)", () => 
   it("rejects history that is not an array", () => {
     expect(isValidStatsState({ ...emptyStatsState(), history: {} })).toBe(false);
   });
+
+  it("rejects malformed history elements; accepts well-formed ones (DEF-003 completion)", () => {
+    const base = emptyStatsState();
+    expect(isValidStatsState({ ...base, history: [{}] })).toBe(false); // no fields
+    expect(isValidStatsState({ ...base, history: [{ mode: "two-player", result: "win" }] })).toBe(false); // no timestamp
+    expect(isValidStatsState({ ...base, history: [{ mode: "solo", result: "win", timestamp: 1 }] })).toBe(false); // bad mode
+    expect(
+      isValidStatsState({ ...base, history: [{ mode: "vs-computer", difficulty: "insane", result: "win", timestamp: 1 }] }),
+    ).toBe(false); // bad difficulty
+    // Well-formed entries (two-player without difficulty; vs-computer with) pass.
+    expect(
+      isValidStatsState({
+        ...base,
+        history: [
+          { mode: "two-player", result: "draw", timestamp: 1 },
+          { mode: "vs-computer", difficulty: "hard", result: "loss", timestamp: 2 },
+        ],
+      }),
+    ).toBe(true);
+  });
 });
