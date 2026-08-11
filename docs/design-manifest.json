@@ -15,30 +15,36 @@
         "locator": "https://claude.ai/design/p/b44687fd-5b60-406e-b6ac-44196b9828f7 (Setup Screen.dc.html)"
       },
       "states": {
-        "covered": ["default (2-player selected)", "vs-computer (difficulty + side)"],
-        "gaps": ["remembered-defaults → FEAT-008"],
+        "covered": ["default (2-player selected)", "vs-computer (difficulty + side)", "remembered-defaults (FEAT-008)"],
+        "gaps": [],
         "supplements": [
           {
             "state": "two-player-variant",
             "strategy": "code-native",
             "source": "features/FEAT-001-local-two-player-match/ui-design.md#scr-web-001--setup--new-game"
+          },
+          {
+            "state": "remembered-defaults",
+            "strategy": "code-native",
+            "source": "features/FEAT-008-remember-last-settings/ui-design.md#scr-web-001--remembered-defaults-state"
           }
         ]
       },
-      "contract_bindings": ["core.newGame", "GameConfig{mode, difficulty, humanMark}"],
+      "contract_bindings": ["core.newGame", "GameConfig{mode, difficulty, humanMark}", "loadLastSettings", "saveLastSettings"],
       "conformance": {
         "result": "pass",
         "corrections": [
           "small essential text (.mdesc/.note): --muted → --color-mutedStrong (AA, design.md §5/§9)",
           "added always-visible focus ring (--color-focus) — mockup omits it (design.md §9)",
           "FEAT-002: Hard difficulty option present but disabled (slice boundary) — enabled in FEAT-003",
-          "FEAT-003: Hard enabled — difficulty control now matches the source (all three selectable)"
+          "FEAT-003: Hard enabled — difficulty control now matches the source (all three selectable)",
+          "FEAT-008: initial selection seeded from last-used settings (remembered-defaults state); controls unchanged"
         ],
         "escalations": []
       },
       "status": "designed",
       "designed_at": "2026-08-06",
-      "updated_by": ["FEAT-002 (vs-computer variant)", "FEAT-003 (Hard enabled)"]
+      "updated_by": ["FEAT-002 (vs-computer variant)", "FEAT-003 (Hard enabled)", "FEAT-008 (remembered-defaults)"]
     },
     "SCR-WEB-002": {
       "name": "Game — In Play",
@@ -140,23 +146,29 @@
             "state": "reset-trigger",
             "strategy": "code-native",
             "source": "features/FEAT-006-reset-statistics/ui-design.md#scr-web-004-supplement--the-reset-trigger-reset-note--btndanger"
+          },
+          {
+            "state": "theme-toggle",
+            "strategy": "code-native",
+            "source": "features/FEAT-007-light-dark-theming/ui-design.md#scr-web-004-supplement--toggle-in-the-stats-header"
           }
         ]
       },
-      "contract_bindings": ["statsStore.snapshot", "core.summarize", "core.filterHistory"],
+      "contract_bindings": ["statsStore.snapshot", "core.summarize", "core.filterHistory", "theme.getTheme", "theme.setTheme"],
       "conformance": {
         "result": "pass",
         "corrections": [
           "small text (.tile .lbl, .hmeta .ms, .htime) --muted → --color-mutedStrong (AA, design.md §5/§9); large draw numeral keeps --muted",
           "draw result-badge bg raw #EEEAE1 → --color-surface2 (token) with --color-mutedStrong text",
           "FEAT-006: reset trigger added (.btn danger + .reset-note in --color-mutedStrong) — gap closed",
+          "FEAT-007: theme toggle added to the Stats header (global-toggle presence; .toggle unchanged)",
           "added always-visible focus rings (back pill, filter) — design.md §9"
         ],
         "escalations": []
       },
       "status": "designed",
       "designed_at": "2026-08-08",
-      "updated_by": ["FEAT-006 (reset trigger)"]
+      "updated_by": ["FEAT-006 (reset trigger)", "FEAT-007 (theme toggle in header)"]
     },
     "SCR-WEB-005": {
       "name": "Reset Confirmation",
@@ -174,18 +186,18 @@
       },
       "contract_bindings": ["openConfirmDialog", "statsStore.reset", "statsStore.snapshot"],
       "conformance": {
-        "result": "pass-with-escalation",
+        "result": "pass",
         "corrections": [
           "composed from design.md §4 confirmation-dialog prose + .btn danger/ghost variants; no source mockup (design.md §9 known gap)",
           "body copy uses --color-mutedStrong (AA); title --ink; initial focus on Cancel (non-destructive default)",
-          "native <dialog> showModal() for scrim + focus-trap + Esc-cancel + modal ARIA"
+          "native <dialog> showModal() for scrim + focus-trap + Esc-cancel + modal ARIA",
+          "E1 RESOLVED (2026-08-10): --scrim token added to design system (ux-foundations amendment); ::backdrop now uses var(--color-scrim) — no raw values remain"
         ],
-        "escalations": [
-          "E1 (minor) — add --scrim token (--ink at ~40% alpha) toward ux-foundations; interim ::backdrop uses ink-derived rgba. Non-blocking."
-        ]
+        "escalations": []
       },
       "status": "designed",
-      "designed_at": "2026-08-09"
+      "designed_at": "2026-08-09",
+      "updated_by": ["E1 resolution — --scrim token (2026-08-10)"]
     }
   }
 }

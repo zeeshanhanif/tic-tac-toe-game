@@ -1,6 +1,8 @@
 // Tiny DOM helper for the manual-rendering UI shell (ADR-002: no framework).
 // Keeps view code declarative without hand-copying createElement boilerplate.
 
+import { getTheme, setTheme } from "./theme.ts";
+
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className?: string,
@@ -21,22 +23,27 @@ export function wordmark(): HTMLElement {
   return w;
 }
 
-/** Light/Dark segmented theme toggle. FEAT-001 flips data-theme only;
- *  OS default + persistence are FEAT-007. */
+/** Light/Dark segmented theme toggle. Routes through the Theme Controller
+ *  (apply + persist); reflects the active theme (FR-THEME-001/003, FEAT-007). */
 export function themeToggle(): HTMLElement {
-  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
   const toggle = el("div", "toggle");
-  const light = el("button", `seg-opt${current === "light" ? " on" : ""}`, "Light");
-  const dark = el("button", `seg-opt${current === "dark" ? " on" : ""}`, "Dark");
+  const light = el("button", "seg-opt", "Light");
+  const dark = el("button", "seg-opt", "Dark");
   light.type = "button";
   dark.type = "button";
-  const apply = (theme: "light" | "dark") => {
-    document.documentElement.setAttribute("data-theme", theme);
+  const paint = (theme: "light" | "dark") => {
     light.classList.toggle("on", theme === "light");
     dark.classList.toggle("on", theme === "dark");
   };
-  light.addEventListener("click", () => apply("light"));
-  dark.addEventListener("click", () => apply("dark"));
+  light.addEventListener("click", () => {
+    setTheme("light");
+    paint("light");
+  });
+  dark.addEventListener("click", () => {
+    setTheme("dark");
+    paint("dark");
+  });
+  paint(getTheme());
   toggle.append(light, dark);
   return toggle;
 }

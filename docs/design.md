@@ -48,6 +48,7 @@ properties for direct use.** Two themes; same role names, re-valued (FR-THEME-00
 | On-primary | `--primary-ink` | `#FFFFFF` | Text on primary fill, on segment `.on` |
 | Win / success | `--win` | `#2E9E5B` | Win state, winning line, win badges |
 | Win tint | `--win-soft` | `#E4F4EA` | Win cell + result banner background |
+| Scrim / overlay | `--scrim` | `rgba(33,28,21,.4)` | Modal backdrop behind dialogs (SCR-WEB-005) |
 
 ```css
 :root {
@@ -64,6 +65,7 @@ properties for direct use.** Two themes; same role names, re-valued (FR-THEME-00
   --primary: #211C15;  --primary-ink: #FFFFFF;
   --win: #2E9E5B; --win-soft: #E4F4EA; --win-border: rgba(46,158,91,.4);
   --focus: #2F6BD8;
+  --scrim: rgba(33,28,21,.4);
   --shadow: 0 1px 2px rgba(33,28,21,.05), 0 8px 24px rgba(33,28,21,.06);
 }
 
@@ -80,6 +82,7 @@ properties for direct use.** Two themes; same role names, re-valued (FR-THEME-00
   --primary: #F1EDE4;  --primary-ink: #1A1712;
   --win: #4CC078; --win-soft: #17301F; --win-border: rgba(76,192,120,.45);
   --focus: #6FA0EE;
+  --scrim: rgba(0,0,0,.55);
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
 }
 ```
@@ -225,10 +228,12 @@ time 12/600.
 **`back-button` (`.back`)** — pill, `--surface`, `--line`, padding 8×14, 13/700
 `--ink`, `--shadow`. Navigates Stats → Game.
 
-**Feedback — confirmation dialog (needs building; see §9):** modal over a scrim,
-`--surface` panel radius 18px, `--shadow`; title, body in `--ink`/`--muted-strong`,
-and a danger + ghost button pair. Used for reset confirmation (FR-STATS-006,
-FR-UI-003). Focus trapped; Esc cancels.
+**Feedback — confirmation dialog (built — SCR-WEB-005):** modal over a **`--scrim`**
+backdrop, `--surface` panel radius 18px, `--shadow`; title in `--ink`, body in
+`--muted-strong`, and a danger + ghost button pair (button row `1fr auto`). Used
+for reset confirmation (FR-STATS-006, FR-UI-003). Built on the native `<dialog>`
+element (`showModal()`): focus trapped, Esc cancels, backdrop click cancels;
+initial focus on the non-destructive (ghost) button.
 
 **Data-view states (convention):** *empty* — stats show zeroed tiles + "No matches
 yet" in the history panel (UC-06 2a); *loading* — not applicable (synchronous
@@ -317,13 +322,19 @@ SRS-driven adjustments recorded:
   for large/non-essential use).
 - Added `--focus` ring spec (2px, `--x`-colored): the mockups define no focus state,
   which the accessibility rules require.
+- Added `--scrim` token (ink at 40% alpha light / `rgba(0,0,0,.55)` dark) for the
+  modal backdrop: §4 named a scrim but the source defined no value (amendment from
+  FEAT-006 ui-design escalation **E1**, 2026-08-10). Mirrors the two-tone `--shadow`
+  ink/black derivation across themes.
 - Derived the **dark theme** from the same roles (warm-dark). The mockups render
   the toggle but only the light palette was built; dark values are a designed
   derivation, lightly contrast-checked — verify in situ.
 
 **Known Gaps (decided later / defaulted, not from source):**
-- **Confirmation dialog** for reset (FR-STATS-006/FR-UI-003) not mocked — spec in
-  §4 is a designed default; refine when building `SCR-WEB-005`.
+- **Confirmation dialog** for reset (FR-STATS-006/FR-UI-003) — **built** as
+  `SCR-WEB-005` (FEAT-006), on the native `<dialog>` element with the `--scrim`
+  backdrop token above. No longer a gap; the original §4 spec was a designed
+  default now realized.
 - **Draw result** banner variant is specified in prose (neutral), not mocked.
 - **Hover/active** micro-states are conventions, not pixel-specified in the source.
 - **Empty history** state (UC-06 2a) specified as convention, not mocked.

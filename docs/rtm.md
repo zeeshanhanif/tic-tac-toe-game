@@ -27,7 +27,7 @@ architecture, implementation, and QA phases.
 | FR-MODE-002 | Choose AI difficulty | M | Elicitation | UC-01 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md (partial — Hard = FEAT-003) · features/FEAT-003-hard-ai-minimax/technical-design.md · ui-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md (partial) · features/FEAT-003-hard-ai-minimax/acceptance-report.md |
 | FR-MODE-003 | Choose to play first/second | S | Elicitation | UC-01 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-MODE-004 | Start game with settings | M | Elicitation | UC-01 | FEAT-001, FEAT-002 | features/FEAT-001-local-two-player-match/technical-design.md · ui-design.md (partial) · features/FEAT-002-vs-computer-easy-medium/technical-design.md · ui-design.md | TBD | features/FEAT-001-local-two-player-match/acceptance-report.md (partial) · features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
-| FR-MODE-005 | Remember last settings | C | Elicitation | UC-01 | FEAT-008 | TBD | TBD | TBD |
+| FR-MODE-005 | Remember last settings | C | Elicitation | UC-01 | FEAT-008 | features/FEAT-008-remember-last-settings/technical-design.md · ui-design.md | TBD | features/FEAT-008-remember-last-settings/acceptance-report.md |
 | FR-AI-001 | Easy: random move | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-AI-002 | Medium: win/block else random | M | Elicitation | UC-03 | FEAT-002 | features/FEAT-002-vs-computer-easy-medium/technical-design.md | TBD | features/FEAT-002-vs-computer-easy-medium/acceptance-report.md |
 | FR-AI-003 | Hard: optimal minimax | M | Elicitation | UC-03 | FEAT-003 | features/FEAT-003-hard-ai-minimax/technical-design.md | TBD | features/FEAT-003-hard-ai-minimax/acceptance-report.md |
@@ -40,9 +40,9 @@ architecture, implementation, and QA phases.
 | FR-STATS-005 | Persist stats in localStorage | M | Elicitation | UC-06 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | features/FEAT-004-persistent-stats/acceptance-report.md |
 | FR-STATS-006 | Reset stats with confirmation | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | features/FEAT-006-reset-statistics/acceptance-report.md |
 | FR-STATS-007 | Update stats at game end | M | Elicitation | UC-04 | FEAT-004 | features/FEAT-004-persistent-stats/technical-design.md | TBD | features/FEAT-004-persistent-stats/acceptance-report.md |
-| FR-THEME-001 | Toggle light/dark | M | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
-| FR-THEME-002 | Default to OS color scheme | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
-| FR-THEME-003 | Persist theme choice | S | Elicitation | UC-08 | FEAT-007 | TBD | TBD | TBD |
+| FR-THEME-001 | Toggle light/dark | M | Elicitation | UC-08 | FEAT-007 | features/FEAT-007-light-dark-theming/technical-design.md · ui-design.md | TBD | features/FEAT-007-light-dark-theming/acceptance-report.md |
+| FR-THEME-002 | Default to OS color scheme | S | Elicitation | UC-08 | FEAT-007 | features/FEAT-007-light-dark-theming/technical-design.md · ui-design.md | TBD | features/FEAT-007-light-dark-theming/acceptance-report.md |
+| FR-THEME-003 | Persist theme choice | S | Elicitation | UC-08 | FEAT-007 | features/FEAT-007-light-dark-theming/technical-design.md · ui-design.md | TBD | features/FEAT-007-light-dark-theming/acceptance-report.md |
 | FR-UI-001 | Responsive layout | M | Elicitation | UC-01..08 | Foundations | TBD | TBD | TBD |
 | FR-UI-002 | Navigate game ↔ stats | M | Elicitation | UC-06 | FEAT-005 | features/FEAT-005-stats-view/technical-design.md · ui-design.md | TBD | features/FEAT-005-stats-view/acceptance-report.md |
 | FR-UI-003 | Confirm destructive actions | S | Elicitation | UC-07 | FEAT-006 | features/FEAT-006-reset-statistics/technical-design.md · ui-design.md | TBD | features/FEAT-006-reset-statistics/acceptance-report.md |

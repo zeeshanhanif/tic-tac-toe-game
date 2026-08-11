@@ -4,6 +4,7 @@
 // play as" side choice (FR-MODE-002 partial, FR-MODE-003).
 
 import { el, topbar } from "../dom.ts";
+import { loadLastSettings, saveLastSettings } from "../last-settings.ts";
 import type { Difficulty, Mark } from "../../core/index.ts";
 import type { GameConfig, GameMode } from "../config.ts";
 
@@ -13,9 +14,11 @@ interface SetupViewHandlers {
 }
 
 export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
-  let mode: GameMode = "two-player";
-  let difficulty: Difficulty = "medium"; // default
-  let humanMark: Mark = "X"; // default — X goes first
+  // Default to the last-used mode/difficulty (FR-MODE-005), else the built-ins.
+  const remembered = loadLastSettings();
+  let mode: GameMode = remembered?.mode ?? "two-player";
+  let difficulty: Difficulty = remembered?.difficulty ?? "medium";
+  let humanMark: Mark = "X"; // default — X goes first (side is not remembered, D2)
 
   const root = el("section", "view");
 
@@ -111,6 +114,7 @@ export function createSetupView(handlers: SetupViewHandlers): HTMLElement {
   const startBtn = el("button", "btn primary", "Start Game");
   startBtn.type = "button";
   startBtn.addEventListener("click", () => {
+    saveLastSettings({ mode, difficulty }); // remember the most-recently-used (FR-MODE-005, D1)
     handlers.onStart(mode === "vs-computer" ? { mode, difficulty, humanMark } : { mode });
   });
 

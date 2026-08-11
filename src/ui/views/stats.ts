@@ -2,7 +2,7 @@
 // the W/L/D summary, a mode filter, and the match history. Read-only; pure
 // aggregation lives in core/stats.ts. FR-STATS-003/004, UC-06. Reset → FEAT-006.
 
-import { el, wordmark } from "../dom.ts";
+import { el, wordmark, themeToggle } from "../dom.ts";
 import { openConfirmDialog } from "./confirm-dialog.ts";
 import {
   summarize,
@@ -42,7 +42,10 @@ export function createStatsView(statsStore: StatsStore, handlers: StatsViewHandl
     const back = el("button", "back", "‹ Back to game");
     back.type = "button";
     back.addEventListener("click", handlers.onBack);
-    bar.append(wordmark(), back);
+    // Global theme toggle (FEAT-007): Back + toggle clustered right, wordmark left.
+    const actions = el("div", "topbar-actions");
+    actions.append(back, themeToggle());
+    bar.append(wordmark(), actions);
     return bar;
   }
 
