@@ -54,11 +54,19 @@ The per-feature loop is **not** done when `acceptance-verification` returns
 *Accepted*. Before a feature is declared **verified** and the loop advances, run
 a **code review of that feature's diff** as a gate:
 
-1. **Trigger:** immediately after `acceptance-verification` accepts a feature
-   (its `acceptance-report.md` is written and the RTM Test ref appended). This is
-   part of the loop, not optional — the orchestrator runs it every time.
-2. **Scope:** `/code-review` over the feature's commit range only (the
-   `FEAT-NNN …` commits since the previous feature), not the whole tree.
+1. **Trigger — any acceptance-verification pass that lands code:**
+   - a **fresh feature** the moment it is accepted (its `acceptance-report.md`
+     is written and the RTM Test ref appended); **and**
+   - a **maintenance fix / re-verification** (a `DEF-NNN` fix, before its
+     re-verification verdict is finalized) — the fix diff gets the *same* review
+     pass. A fix is not self-certifying just because it came from a review;
+     review it before calling the re-verification done.
+
+   This is part of the loop, not optional — the orchestrator runs it every time
+   code lands, feature or fix alike.
+2. **Scope:** `/code-review` over the relevant commit range only — a fresh
+   feature's `FEAT-NNN …` commits since the previous feature, or a fix's
+   `fix(DEF-NNN)` commit(s) — not the whole tree.
 3. **Why it's additive:** acceptance-verification audits *tests vs. criteria* and
    reruns the suites; it does **not** hunt correctness/reuse/efficiency bugs.
    This gate covers that gap — catching a defect at the feature that introduced
