@@ -2,7 +2,7 @@
 // history. Persistence is done by infra/stats-store.ts (ADR-003: core imports
 // nothing outward). FR-STATS-001/002/007.
 
-import type { Difficulty } from "./ai.ts";
+import { DIFFICULTIES, type Difficulty } from "./ai.ts";
 import type { GameStatus, Mark } from "./board.ts";
 
 // GameMode is core data (a MatchRecord field persisted by infra); ui/config.ts
@@ -48,20 +48,29 @@ export function emptyStatsState(): StatsState {
     version: STATS_VERSION,
     stats: {
       twoPlayer: emptyWLD(),
-      vsComputer: { easy: emptyWLD(), medium: emptyWLD(), hard: emptyWLD() },
+      vsComputer: Object.fromEntries(DIFFICULTIES.map((d) => [d, emptyWLD()])) as Record<
+        Difficulty,
+        WLD
+      >,
     },
     history: [],
   };
 }
 
 const GAME_MODES: readonly GameMode[] = ["two-player", "vs-computer"];
-const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
 const GAME_RESULTS: readonly GameResult[] = ["win", "loss", "draw"];
+
+// A tally is a non-negative integer — reject negatives, non-integers, NaN, and
+// overflow-Infinity (which only reach storage via tampering) so a numeric-but-
+// nonsensical bucket resets rather than rendering garbage aggregates.
+function isCount(n: unknown): n is number {
+  return typeof n === "number" && Number.isInteger(n) && n >= 0;
+}
 
 function isWLD(x: unknown): x is WLD {
   if (!x || typeof x !== "object") return false;
   const w = x as Record<string, unknown>;
-  return typeof w.wins === "number" && typeof w.losses === "number" && typeof w.draws === "number";
+  return isCount(w.wins) && isCount(w.losses) && isCount(w.draws);
 }
 
 function isMatchRecord(x: unknown): x is MatchRecord {
@@ -93,7 +102,7 @@ export function isValidStatsState(x: unknown): x is StatsState {
   if (!isWLD(stats.twoPlayer)) return false;
   if (!stats.vsComputer || typeof stats.vsComputer !== "object") return false;
   const vs = stats.vsComputer as Record<string, unknown>;
-  return isWLD(vs.easy) && isWLD(vs.medium) && isWLD(vs.hard);
+  return DIFFICULTIES.every((d) => isWLD(vs[d]));
 }
 
 /** Map an ended game status to a result from `perspective`'s point of view. */

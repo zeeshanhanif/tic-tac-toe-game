@@ -4,7 +4,7 @@
 // ui/theme.ts. Side (humanMark) is intentionally not remembered (D2).
 
 import { createStorageRepo, type StorageRepo } from "../infra/storage.ts";
-import type { Difficulty } from "../core/index.ts";
+import { DIFFICULTIES, type Difficulty } from "../core/index.ts";
 import type { GameMode } from "./config.ts";
 
 export interface LastSettings {
@@ -14,7 +14,6 @@ export interface LastSettings {
 export const SETTINGS_KEY = "ttt:settings:v1";
 
 const MODES: readonly GameMode[] = ["two-player", "vs-computer"];
-const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
 
 // Pure: validate an arbitrary loaded blob into LastSettings, or null if it is
 // missing / corrupt / an unknown enum (→ caller uses the built-in defaults).

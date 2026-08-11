@@ -150,6 +150,18 @@ describe("isValidStatsState — full-shape guard (DEF-003, NFR-REL-001)", () => 
     expect(isValidStatsState(badWLD)).toBe(false);
   });
 
+  it("rejects nonsensical numeric counts — negative, non-integer, Infinity (review #3)", () => {
+    const base = emptyStatsState();
+    const withCount = (wins: unknown) => ({
+      ...base,
+      stats: { ...base.stats, twoPlayer: { wins, losses: 0, draws: 0 } },
+    });
+    expect(isValidStatsState(withCount(-1))).toBe(false); // negative
+    expect(isValidStatsState(withCount(1.5))).toBe(false); // non-integer
+    expect(isValidStatsState(withCount(Infinity))).toBe(false); // overflow
+    expect(isValidStatsState(withCount(0))).toBe(true); // a valid count still passes
+  });
+
   it("rejects history that is not an array", () => {
     expect(isValidStatsState({ ...emptyStatsState(), history: {} })).toBe(false);
   });
