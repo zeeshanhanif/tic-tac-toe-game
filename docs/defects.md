@@ -7,8 +7,41 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | :- | :--- | :------------------ | :------- | :------ | :----- |
 | DEF-001 | 2026-08-08 | FR-MODE-002/003 · FEAT-002 (setup) | Cosmetic | Two-player mode shows the vs-Computer-only Difficulty + "You play as" controls | Fixed |
 | DEF-002 | 2026-08-09 | FR-AI-003 / NFR-PERF-002 · FEAT-003 (Hard AI) | CI-blocking | Un-memoized minimax exceeds the 500 ms perf test on slow CI hardware (931 ms observed) | Fixed |
+| DEF-003 | 2026-08-11 | FR-STATS-005 / NFR-REL-001/002 · FEAT-004 (stats store) | Latent-crash | `loadState` guards only top-level truthiness, so a partially-corrupt persisted stats object (missing `vsComputer` sub-tree) passes and later crashes `recordResult`/`summarize` — violating the "reset on corrupt shape" contract | Fixed |
 
 ---
+
+## DEF-003 — Partially-corrupt persisted stats passes the load guard
+
+- **Observed (code review, 2026-08-11):** `infra/stats-store.ts` `loadState`
+  guards only top-level truthiness
+  (`!loaded || loaded.version !== STATS_VERSION || !loaded.stats || !loaded.history`).
+  A same-version object with a **partial `stats` tree** — e.g.
+  `{version:1, stats:{twoPlayer:{…}}, history:[]}` missing the `vsComputer`
+  sub-tree — passes the guard unchanged.
+- **Owning feature:** FEAT-004 (Stats Service + Storage Repository). The guard's
+  own comment claims *"reset to empty on version mismatch or corrupt shape
+  (architecture §8 / NFR-REL-001)"* — so the code violates its stated contract.
+- **Impact:** **Latent crash.** On the next vs-Computer game,
+  `recordResult` reads `state.stats.vsComputer[diff]` → `undefined`, then
+  `{...bucket, [key]: bucket[key] + 1}` throws
+  *"Cannot read properties of undefined"*; `summarize()` crashes the same way when
+  the Stats view opens. Reachable via hand-edited storage or a future migration
+  bug at the same schema version — the version guard does **not** catch it.
+- **Root cause:** shallow shape validation — truthiness of `stats`/`history`
+  instead of validating the full `StatsState` shape.
+- **Fix:** a **pure `isValidStatsState(x)` type-guard** in `core/stats.ts`
+  (validates `version`, both `stats.twoPlayer` and `stats.vsComputer.{easy,
+  medium,hard}` as WLD triples, and `history` is an array); `loadState` resets to
+  `emptyStatsState()` whenever it fails. Subsumes the old version + truthiness
+  checks. History **element** validation is out of scope (this-fix-only; the
+  reported crash is the missing stats sub-tree).
+- **Regression guard:** `core/stats.test.ts` (isValidStatsState accepts a good
+  state, rejects partial/missing/non-numeric shapes) + `infra/stats-store.test.ts`
+  (partial-corrupt persisted data → resets to empty; a subsequent vs-Computer
+  `record()` no longer throws).
+- **Verification:** failing test written first (partial-corrupt load), then the
+  fix; FEAT-004 re-verified — see its acceptance report's DEF-003 re-verification.
 
 ## DEF-001 — Two-player shows vs-Computer controls
 

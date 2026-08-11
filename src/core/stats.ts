@@ -54,6 +54,32 @@ export function emptyStatsState(): StatsState {
   };
 }
 
+function isWLD(x: unknown): x is WLD {
+  if (!x || typeof x !== "object") return false;
+  const w = x as Record<string, unknown>;
+  return typeof w.wins === "number" && typeof w.losses === "number" && typeof w.draws === "number";
+}
+
+/**
+ * Pure type-guard for a persisted StatsState (DEF-003). Validates the full
+ * shape — current version, both stat buckets as WLD triples, history an array —
+ * so a partially-corrupt object (e.g. a missing `vsComputer` sub-tree) is
+ * rejected and the caller resets to defaults (architecture §8 / NFR-REL-001).
+ * History *element* shape is not validated here (out of DEF-003's scope).
+ */
+export function isValidStatsState(x: unknown): x is StatsState {
+  if (!x || typeof x !== "object") return false;
+  const s = x as Record<string, unknown>;
+  if (s.version !== STATS_VERSION) return false;
+  if (!Array.isArray(s.history)) return false;
+  if (!s.stats || typeof s.stats !== "object") return false;
+  const stats = s.stats as Record<string, unknown>;
+  if (!isWLD(stats.twoPlayer)) return false;
+  if (!stats.vsComputer || typeof stats.vsComputer !== "object") return false;
+  const vs = stats.vsComputer as Record<string, unknown>;
+  return isWLD(vs.easy) && isWLD(vs.medium) && isWLD(vs.hard);
+}
+
 /** Map an ended game status to a result from `perspective`'s point of view. */
 export function resultOf(status: GameStatus, perspective: Mark): GameResult {
   if (status.kind === "draw") return "draw";

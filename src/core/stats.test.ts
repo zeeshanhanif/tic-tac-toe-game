@@ -3,6 +3,7 @@
 import { describe, it, expect } from "vitest";
 import {
   emptyStatsState,
+  isValidStatsState,
   recordResult,
   resultOf,
   summarize,
@@ -118,5 +119,38 @@ describe("filterHistory — chronological, newest first (AC-2, AC-5, FR-STATS-00
     const s = build();
     filterHistory(s, "all");
     expect(s.history.map((r) => r.timestamp)).toEqual([1, 2, 3, 4]); // still oldest-first
+  });
+});
+
+describe("isValidStatsState — full-shape guard (DEF-003, NFR-REL-001)", () => {
+  it("accepts a well-formed state", () => {
+    expect(isValidStatsState(emptyStatsState())).toBe(true);
+    expect(isValidStatsState(build())).toBe(true);
+  });
+
+  it("rejects non-objects and wrong version", () => {
+    expect(isValidStatsState(null)).toBe(false);
+    expect(isValidStatsState("garbage")).toBe(false);
+    expect(isValidStatsState({ ...emptyStatsState(), version: 999 })).toBe(false);
+  });
+
+  it("rejects a partial stats tree — missing vsComputer sub-tree", () => {
+    expect(
+      isValidStatsState({ version: 1, stats: { twoPlayer: { wins: 0, losses: 0, draws: 0 } }, history: [] }),
+    ).toBe(false);
+  });
+
+  it("rejects a missing difficulty bucket and non-numeric WLD fields", () => {
+    const base = emptyStatsState();
+    // drop one difficulty bucket
+    const missingHard = { ...base, stats: { ...base.stats, vsComputer: { easy: base.stats.vsComputer.easy, medium: base.stats.vsComputer.medium } } };
+    expect(isValidStatsState(missingHard)).toBe(false);
+    // non-numeric WLD field
+    const badWLD = { ...base, stats: { ...base.stats, twoPlayer: { wins: "1", losses: 0, draws: 0 } } };
+    expect(isValidStatsState(badWLD)).toBe(false);
+  });
+
+  it("rejects history that is not an array", () => {
+    expect(isValidStatsState({ ...emptyStatsState(), history: {} })).toBe(false);
   });
 });

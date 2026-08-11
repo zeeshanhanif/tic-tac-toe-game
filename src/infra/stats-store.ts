@@ -4,8 +4,8 @@
 
 import {
   emptyStatsState,
+  isValidStatsState,
   recordResult,
-  STATS_VERSION,
   type MatchRecord,
   type StatsState,
 } from "../core/index.ts";
@@ -13,14 +13,12 @@ import { createStorageRepo, type StorageRepo } from "./storage.ts";
 
 export const STATS_KEY = "ttt:stats:v1";
 
-// Load persisted state; reset to empty on version mismatch or corrupt shape
-// (architecture §8 / NFR-REL-001).
+// Load persisted state; reset to empty on version mismatch or any corrupt/partial
+// shape (architecture §8 / NFR-REL-001) — full-shape validation via the pure
+// core guard, not shallow truthiness (DEF-003).
 function loadState(repo: StorageRepo): StatsState {
-  const loaded = repo.load<StatsState | null>(STATS_KEY, null);
-  if (!loaded || loaded.version !== STATS_VERSION || !loaded.stats || !loaded.history) {
-    return emptyStatsState();
-  }
-  return loaded;
+  const loaded = repo.load<unknown>(STATS_KEY, null);
+  return isValidStatsState(loaded) ? loaded : emptyStatsState();
 }
 
 export interface StatsStore {

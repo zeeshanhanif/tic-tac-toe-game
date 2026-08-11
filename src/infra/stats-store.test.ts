@@ -55,6 +55,29 @@ describe("stats-store", () => {
     expect(store.snapshot().history).toHaveLength(0);
   });
 
+  // DEF-003 — a same-version object with a partial stats tree must NOT pass the
+  // load guard (architecture §8 / NFR-REL-001 "reset on corrupt shape").
+  it("resets to empty when the persisted stats tree is partially corrupt (DEF-003)", () => {
+    const partial = JSON.stringify({
+      version: 1,
+      stats: { twoPlayer: { wins: 1, losses: 0, draws: 0 } }, // missing vsComputer
+      history: [],
+    });
+    const store = createStatsStore(createStorageRepo(fakeStore({ [STATS_KEY]: partial })));
+    expect(store.snapshot().stats.vsComputer.hard).toEqual({ wins: 0, losses: 0, draws: 0 });
+    expect(store.snapshot().stats.twoPlayer).toEqual({ wins: 0, losses: 0, draws: 0 });
+    expect(store.snapshot().history).toHaveLength(0);
+  });
+
+  it("does not crash recording a vs-computer game after loading partial-corrupt data (DEF-003)", () => {
+    const partial = JSON.stringify({ version: 1, stats: { twoPlayer: {} }, history: [] });
+    const store = createStatsStore(createStorageRepo(fakeStore({ [STATS_KEY]: partial })));
+    expect(() =>
+      store.record(rec({ mode: "vs-computer", difficulty: "hard", result: "win" })),
+    ).not.toThrow();
+    expect(store.snapshot().stats.vsComputer.hard.wins).toBe(1);
+  });
+
   // FEAT-006 — reset() (FR-STATS-006, UC-07). AC-3, AC-5.
   it("reset() clears tallies + history to zeroed state (FEAT-006 AC-3)", () => {
     const store = createStatsStore(createStorageRepo(fakeStore()));
