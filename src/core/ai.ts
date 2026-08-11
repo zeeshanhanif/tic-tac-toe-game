@@ -5,7 +5,11 @@
 
 import { applyMove, evaluateStatus, BOARD_SIZE, type Board, type Mark } from "./board.ts";
 
-export type Difficulty = "easy" | "medium" | "hard";
+// Single source of truth for difficulty levels — the type derives from the
+// runtime list, so adding a level updates the type, validators, and stats
+// buckets together (no drift). Consumed by core/stats.ts and ui/last-settings.ts.
+export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
 
 /** Indices of empty cells — the legal moves. */
 export function legalMoves(board: Board): number[] {

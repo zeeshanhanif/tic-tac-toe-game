@@ -47,3 +47,41 @@ Each slice gets per-slice **detailed-design** (contracts/data) and **ui-design**
 (screens by `SCR-WEB-NNN`) before coding. First slice up: **FEAT-001** (local
 two-player match). Skeleton stubs are marked `TODO(FEAT-xxx)` — replace, don't
 work around.
+
+## Per-feature quality gate (review after every feature)
+
+The per-feature loop is **not** done when `acceptance-verification` returns
+*Accepted*. Before a feature is declared **verified** and the loop advances, run
+a **code review of that feature's diff** as a gate:
+
+1. **Trigger — any acceptance-verification pass that lands code:**
+   - a **fresh feature** the moment it is accepted (its `acceptance-report.md`
+     is written and the RTM Test ref appended); **and**
+   - a **maintenance fix / re-verification** (a `DEF-NNN` fix, before its
+     re-verification verdict is finalized) — the fix diff gets the *same* review
+     pass. A fix is not self-certifying just because it came from a review;
+     review it before calling the re-verification done.
+
+   This is part of the loop, not optional — the orchestrator runs it every time
+   code lands, feature or fix alike.
+2. **Scope:** `/code-review` over the relevant commit range only — a fresh
+   feature's `FEAT-NNN …` commits since the previous feature, or a fix's
+   `fix(DEF-NNN)` commit(s) — not the whole tree.
+3. **Why it's additive:** acceptance-verification audits *tests vs. criteria* and
+   reruns the suites; it does **not** hunt correctness/reuse/efficiency bugs.
+   This gate covers that gap — catching a defect at the feature that introduced
+   it, not plan-end.
+4. **Route the findings:**
+   - **Correctness bugs** (contract/requirement violations) → log a **DEF-NNN**
+     in `docs/defects.md` and fix via the **maintenance protocol** (failing test
+     first → scoped fix → re-verify) *before* the feature counts as verified.
+   - **Quality only** (reuse/simplification/efficiency) → optional cleanup
+     (`/simplify`), never blocking.
+   - **Debatable/design** findings → surface to the user; don't self-resolve.
+5. **Depth:** the gate uses standard `/code-review` (in-session). The deeper
+   `/code-review ultra` (cloud, billed) stays a **manual** milestone review — the
+   loop never launches it.
+
+This is a *semantic* gate owned by the loop — deliberately **not** a settings
+hook, since "feature completed" is not a harness event and the review is agentic
+(a hook can only enforce the mechanical `lint`/`test`/`build` floor).

@@ -2,7 +2,7 @@
 // history. Persistence is done by infra/stats-store.ts (ADR-003: core imports
 // nothing outward). FR-STATS-001/002/007.
 
-import type { Difficulty } from "./ai.ts";
+import { DIFFICULTIES, type Difficulty } from "./ai.ts";
 import type { GameStatus, Mark } from "./board.ts";
 
 // GameMode is core data (a MatchRecord field persisted by infra); ui/config.ts
@@ -48,10 +48,61 @@ export function emptyStatsState(): StatsState {
     version: STATS_VERSION,
     stats: {
       twoPlayer: emptyWLD(),
-      vsComputer: { easy: emptyWLD(), medium: emptyWLD(), hard: emptyWLD() },
+      vsComputer: Object.fromEntries(DIFFICULTIES.map((d) => [d, emptyWLD()])) as Record<
+        Difficulty,
+        WLD
+      >,
     },
     history: [],
   };
+}
+
+const GAME_MODES: readonly GameMode[] = ["two-player", "vs-computer"];
+const GAME_RESULTS: readonly GameResult[] = ["win", "loss", "draw"];
+
+// A tally is a non-negative integer — reject negatives, non-integers, NaN, and
+// overflow-Infinity (which only reach storage via tampering) so a numeric-but-
+// nonsensical bucket resets rather than rendering garbage aggregates.
+function isCount(n: unknown): n is number {
+  return typeof n === "number" && Number.isInteger(n) && n >= 0;
+}
+
+function isWLD(x: unknown): x is WLD {
+  if (!x || typeof x !== "object") return false;
+  const w = x as Record<string, unknown>;
+  return isCount(w.wins) && isCount(w.losses) && isCount(w.draws);
+}
+
+function isMatchRecord(x: unknown): x is MatchRecord {
+  if (!x || typeof x !== "object") return false;
+  const r = x as Record<string, unknown>;
+  if (!GAME_MODES.includes(r.mode as GameMode)) return false;
+  if (!GAME_RESULTS.includes(r.result as GameResult)) return false;
+  if (typeof r.timestamp !== "number") return false;
+  // difficulty is optional (vs-computer only); if present it must be valid.
+  if (r.difficulty !== undefined && !DIFFICULTIES.includes(r.difficulty as Difficulty)) return false;
+  return true;
+}
+
+/**
+ * Pure type-guard for a persisted StatsState (DEF-003). Validates the full
+ * shape — current version, both stat buckets as WLD triples, and history as an
+ * array of well-formed MatchRecords — so any partially-corrupt object (a missing
+ * `vsComputer` sub-tree *or* a malformed history entry) is rejected and the
+ * caller resets to defaults (architecture §8 / NFR-REL-001). The narrowing is
+ * sound: every field a consumer reads has been checked.
+ */
+export function isValidStatsState(x: unknown): x is StatsState {
+  if (!x || typeof x !== "object") return false;
+  const s = x as Record<string, unknown>;
+  if (s.version !== STATS_VERSION) return false;
+  if (!Array.isArray(s.history) || !s.history.every(isMatchRecord)) return false;
+  if (!s.stats || typeof s.stats !== "object") return false;
+  const stats = s.stats as Record<string, unknown>;
+  if (!isWLD(stats.twoPlayer)) return false;
+  if (!stats.vsComputer || typeof stats.vsComputer !== "object") return false;
+  const vs = stats.vsComputer as Record<string, unknown>;
+  return DIFFICULTIES.every((d) => isWLD(vs[d]));
 }
 
 /** Map an ended game status to a result from `perspective`'s point of view. */
