@@ -1,8 +1,39 @@
 # Acceptance Report: FEAT-004 — Persistent stats recording
 
 > Verdict: **Accepted** · Date: 2026-08-08
+> Re-verification (DEF-003): **Accepted (holds)** · Date: 2026-08-11
 > Standard: technical-design.md §6 (6 criteria) · Sources: srs.md, architecture.md (ADR-004, §8)
 > Repo state audited: HEAD (b814061) — FEAT-004 fully committed
+
+## DEF-003 re-verification — 2026-08-11 (Accepted, holds)
+
+Triggered by the per-feature review gate finding on `stats-store.ts` `loadState`.
+**DEF-003:** the load guard checked only top-level truthiness, so a same-version
+object with a **partial `stats` tree** (missing `vsComputer`) passed — later
+crashing `recordResult`/`summarize`. This was a **latent gap in AC-6**
+(NFR-REL-001 / architecture §8 "reset on corrupt shape"): the original AC-6
+tests covered *total garbage* and *version mismatch*, but not *partial shape*.
+
+- **Fix audited** (`fix(DEF-003)`, `0eee6e6`): a pure `isValidStatsState(x)`
+  type-guard in `core/stats.ts` (validates version + `twoPlayer` and
+  `vsComputer.{easy,medium,hard}` as WLD triples + `history` array); `loadState`
+  resets to `emptyStatsState()` unless it passes — subsuming the old
+  version+truthiness check. History *element* validation is out of DEF-003's
+  scope (recorded).
+- **Tests, failing-first:** the two `infra/stats-store.test.ts` DEF-003 cases
+  were **observed red** before the fix (partial-corrupt not reset; vs-computer
+  record threw), then green after. `core/stats.test.ts` adds 5 `isValidStatsState`
+  cases. **No existing test weakened**; the original AC-6 cases (garbage, version
+  mismatch) and AC-4 (persist & restore a real game — proving no over-rejection)
+  still pass.
+- **Observed green this run:** FEAT-004 suite 30 · whole repo **68 unit** · `tsc`
+  build · ESLint (boundaries) · **12 E2E** — all fresh.
+- **Verdict:** **AC-6 now fully covers corrupt-shape reset**; FR-STATS-005
+  persistence and NFR-REL-001/002 hold. FEAT-004 remains **Accepted**; RTM Test
+  ref unchanged (already present). Defect ledger DEF-003 → **Fixed**.
+
+---
+
 
 ## Verdict summary
 
