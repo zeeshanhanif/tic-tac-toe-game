@@ -25,29 +25,35 @@
       "skillPath": "skills/implementation-planning/SKILL.md",
       "computedHash": "a7ad8f0a50050ce15d25e5d26af4caca11abd55ab08a59751a371dceaf3d7d3f"
     },
+    "initial-deployment": {
+      "source": "zeeshanhanif/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/initial-deployment/SKILL.md",
+      "computedHash": "fdc3c0056e3a32f1da39a2c75ed30a68a4f45e8e26a79723874ceb5015b9ddf3"
+    },
     "project-scaffolding": {
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/project-scaffolding/SKILL.md",
-      "computedHash": "7cf7bc416ad81a7cd036e887ff836423010e53e377d8b9e004cb7769b84c4151"
+      "computedHash": "6cd4fe19b176bdc9d233b2c535a130d0809ac3c903bb3714b5330bde63960a3d"
     },
     "requirements-engineering": {
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/requirements-engineering/SKILL.md",
-      "computedHash": "16e610fc64201d0a1fe9868cd2c923fa0e0d39937c306e61877dd0788f0a1191"
+      "computedHash": "c2f9dfb738cce0e916dae2364ed93699e9c9e318bf7eb75b8a6b12c2f45e5b82"
     },
     "sdlc-orchestrator": {
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/sdlc-orchestrator/SKILL.md",
-      "computedHash": "199b03e0e7ca093b09d89fd021eb36c2ebe4a634f17c914699294c8029308319"
+      "computedHash": "b80f2cb79aef9157cf20888e2b7918cbf503ff1614ba5d346ab2a1d7d1bb6c9e"
     },
     "software-architecture": {
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/software-architecture/SKILL.md",
-      "computedHash": "2f18b24a7544475b2c559f522c09feb4d9472dd9b1040ce433cf24cee11859cb"
+      "computedHash": "3cfd5975605ce43ba0b858477234d8feb0fd7753cc9512a3923b236be1eed40b"
     },
     "ui-design": {
       "source": "zeeshanhanif/agent-skills",
@@ -59,7 +65,7 @@
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/ux-foundations/SKILL.md",
-      "computedHash": "5d99cc1f36c7e28338563e708d663bfcb20d087e6917edf515c927053dd39c57"
+      "computedHash": "410911d21902f29b189241792015cb64cbf619d73f75ac6451a28682ffc31008"
     }
   }
 }

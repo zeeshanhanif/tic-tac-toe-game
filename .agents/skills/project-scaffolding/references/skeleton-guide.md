@@ -24,7 +24,9 @@ with stubs exactly where the plan said stubs.
   not the schema; schemas are per-slice detailed-design work).
 - **The end-to-end test** — one automated test driving the whole path:
   UI-or-API entry → store → back, asserting the round trip. This test *is*
-  the done-when condition's local half, encoded.
+  the done-when condition's local half, encoded — written in the **E2E
+  workspace** with the architecture-named E2E framework (see Foundations),
+  seeding the suite later work extends.
 
 Stubs are honest stubs: clearly named, returning fixed shapes, with a comment
 pointing at the slice that will replace them. The plan's real-vs-stubbed list
@@ -51,9 +53,11 @@ From ux-foundations' outputs:
 The plan's engineering-foundations checklist made real — sized to the
 checklist, not beyond it:
 
-- **CI pipeline**: lint + test + build for every unit, on the target the plan
-  or user named. It must be written to pass — a red pipeline at delivery is a
-  verification failure, not a TODO.
+- **CI pipeline**: lint + test + build for every unit — plus the **coverage
+  step per the architecture's stance** (a gating threshold job when enforced,
+  report generation when report-only, nothing when none) — on the target the
+  plan or user named. It must be written to pass — a red pipeline at delivery
+  is a verification failure, not a TODO.
 - **Environments as config**: dev/staging/prod configuration files or
   parameterization per the architecture's deployment view — *written, not
   provisioned*. Secrets handled by the ecosystem's standard mechanism with
@@ -61,13 +65,32 @@ checklist, not beyond it:
 - **Observability hooks**: structured logging in every unit at minimum;
   metrics/tracing scaffolded only if the architecture's cross-cutting concepts
   demanded them at skeleton stage.
-- **Test harness**: the ecosystem-standard runner per unit, wired into CI,
-  containing at least the end-to-end skeleton test (and whatever unit-test
-  scaffolding the generator provided, kept).
+- **Test harness — realize the frameworks the architecture named.** The
+  architecture's cross-cutting Testing entry names the unit/integration runner
+  per stack unit, the E2E framework, **and the coverage stance** (user-decided
+  there; scaffolding executes, it doesn't choose). Install and configure
+  exactly those, wire them into CI, keep whatever unit-test scaffolding the
+  generators provided (adapted to the named runner where they differ), and set
+  the placement/naming conventions with one example test per unit. **Coverage
+  per the stance**: **enforced** → the named tool configured with the stated
+  threshold and scope, wired as a CI gate that fails the pipeline;
+  **report-only** → coverage generated and surfaced in CI, no gate; **none**
+  → nothing installed, and nothing "helpfully" added. **Fallback**: only when
+  the architecture is silent on testing (an older document, or the entry was
+  skipped) use the ecosystem-standard runner per unit with **no coverage
+  tooling** — and note the gap in scaffold-notes as a candidate architecture
+  amendment. Record thresholds alongside versions in scaffold-notes.
+- **E2E workspace**: stood up as a system-level suite beside the units (e.g.,
+  `e2e/` in the monorepo, or the workspace tool's convention) using the
+  architecture-named E2E framework, configured to drive the frontend against
+  the real local stack. **The skeleton's end-to-end test is written in it —
+  the skeleton test is the E2E suite's seed**, and later work extends this
+  suite for the architecture's named critical flows. Record framework names
+  and versions (unit runners and E2E) in scaffold-notes.
 - **Deployment config written**: for the architecture's stated target —
   Dockerfiles, service config, IaC skeleton as appropriate — syntactically
   valid, checked into the repo, **not executed**. The delivery summary states
-  plainly: first deploy is the user's step, and the done-when's deployed half
+  plainly: the initial deployment is the user's step, and the done-when's deployed half
   is pending until then.
 - **Cross-cutting FRs placed in foundations by the plan** (e.g., audit-logging
   groundwork) get their hooks here, with their FR IDs in a comment — the
