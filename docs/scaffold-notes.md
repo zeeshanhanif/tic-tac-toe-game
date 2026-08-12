@@ -78,10 +78,12 @@ we go. Consumers: future coding sessions, the build phases.
 ## Deploy & CI
 
 - **Vercel** (`vercel.json`): framework `vite`, build `npm run build`, output
-  `dist`, install `npm ci`. Written, **not executed** — first deploy is the
-  user's step.
+  `dist`, install `npm ci`. ✅ **DEPLOYED 2026-08-11** via Vercel/GitHub Git
+  integration → https://tic-tac-toe-game-gilt-gamma.vercel.app (see
+  `docs/deployment-notes.md`).
 - **CI** (`.github/workflows/ci.yml`): on push to `main` / PRs — `npm ci` →
-  `gen:tokens` → `lint` → `test` → `build`. First CI run is on first push.
+  `gen:tokens` → `lint` → `test` → `build`. ✅ **Running green** (PR #9 merge to
+  `main`, and prior PRs).
 
 ## Verification results (Phase 7, local)
 
@@ -92,4 +94,6 @@ we go. Consumers: future coding sessions, the build phases.
 - Boundary rule: proven to reject a forbidden `core → ui` import.
 - Token wiring: token values present in built CSS only via the generator, and
   consumed through `var()` (19 `var(--color-*)` refs), incl. dark theme.
-- **Pending first deploy** (Vercel) and **first CI run** (on push).
+- ✅ **First deploy done** (Vercel, 2026-08-11) and **CI green on `main`** — see
+  `docs/deployment-notes.md`. The walking skeleton's deployed-half done-when is
+  demonstrated (12/12 E2E green against the live URL).
