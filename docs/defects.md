@@ -8,6 +8,9 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-001 | 2026-08-08 | FR-MODE-002/003 · FEAT-002 (setup) | Cosmetic | Two-player mode shows the vs-Computer-only Difficulty + "You play as" controls | Fixed |
 | DEF-002 | 2026-08-09 | FR-AI-003 / NFR-PERF-002 · FEAT-003 (Hard AI) | CI-blocking | Un-memoized minimax exceeds the 500 ms perf test on slow CI hardware (931 ms observed) | Fixed |
 | DEF-003 | 2026-08-11 | FR-STATS-005 / NFR-REL-001/002 · FEAT-004 (stats store) | Latent-crash | `loadState` guards only top-level truthiness, so a partially-corrupt persisted stats object (missing `vsComputer` sub-tree) passes and later crashes `recordResult`/`summarize` — violating the "reset on corrupt shape" contract | Fixed |
+| DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Open |
+| DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Open |
+| DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Open |
 
 ---
 
@@ -104,3 +107,65 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   the exhaustive never-lose tests (unchanged, re-run in FEAT-003 re-verification).
 - **Verification:** all 53 unit tests green locally incl. perf; FEAT-003
   re-verified (never-lose mutation check still bites; perf now robust).
+
+## DEF-004 — Explicit theme choice does not reach UA-rendered chrome
+
+- **Observed (milestone code review, 2026-08-15):** `src/style.css:15` sets
+  `:root { color-scheme: light dark; }` and `index.html:7` carries the matching
+  `<meta name="color-scheme" content="light dark">`. Neither is ever narrowed
+  per theme, while the palette follows `data-theme` (`src/ui/theme.ts:18-20`).
+- **Owning feature:** FEAT-007 (Theme Controller).
+- **Impact:** **Visible mismatch.** On a light-mode OS, choosing "Dark" flips
+  every token but leaves the UA resolving light-vs-dark from
+  `prefers-color-scheme` alone — scrollbars, the pre-paint canvas colour and any
+  UA-styled widget stay light, framing a dark page in light chrome (and the
+  inverse for a dark-mode OS choosing "Light"). FR-THEME-001 asks the choice to
+  apply to the application, not to the token layer only.
+- **Root cause:** `color-scheme` was set once as a static capability
+  declaration; the FEAT-007 theming work added `data-theme` switching without
+  bringing `color-scheme` under it.
+- **Proposed fix:** add `:root[data-theme="dark"] { color-scheme: dark; }` and
+  `:root[data-theme="light"] { color-scheme: light; }`. The `light dark` default
+  on bare `:root` stays, so the pre-choice OS default is unaffected.
+- **Regression guard:** extend `tests/e2e/theme.spec.ts` to assert the computed
+  `color-scheme` follows the explicit choice, not the OS preference.
+
+## DEF-005 — Two interactive controls breach the 44×44 touch minimum
+
+- **Observed (milestone code review, 2026-08-15):** `.toggle .seg-opt`
+  (`src/style.css:93`) sets only `padding: 6px 12px` at `--font-size-sm` (~30px
+  tall), and `.footer .link` (`src/style.css:616`) likewise omits a minimum.
+- **Owning feature:** FEAT-007 (theme toggle) and FEAT-005 (footer stats link).
+- **Impact:** **NFR-USE-002 breach** — the SRS states interactive targets *shall*
+  be at least 44×44 CSS pixels on touch devices. The footer link is the primary
+  entry point to the Stats view on both Setup and Game, and the theme toggle is
+  present on every screen, so both are high-traffic touch targets.
+- **Root cause:** omission, not a deliberate exception — every other interactive
+  control in the sheet sets `min-height: var(--layout-touchTargetMin)`
+  explicitly (`.mode`, `.seg button`, `.pill`, `.btn`, `.back`, `.cell`).
+- **Proposed fix:** add `min-height: var(--layout-touchTargetMin)` to both rules,
+  matching the established pattern. No token changes.
+- **Regression guard:** an E2E assertion on the bounding-box height of the theme
+  toggle segments and the footer link.
+
+## DEF-006 — Stats view can show counts one game behind
+
+- **Observed (milestone code review, 2026-08-15):** `src/ui/views/game.ts:194`
+  wires the stats link straight to `handlers.onViewStats` with no `cancelAI()`,
+  unlike the Menu path (line 123) which cancels. `createStatsView` snapshots
+  `statsStore.snapshot()` once at construction (`src/ui/views/stats.ts:35`).
+- **Owning feature:** FEAT-005 (stats view / game↔stats navigation).
+- **Impact:** **Stale data.** In vs-Computer, a human move that puts the AI on
+  match point followed by an immediate click on "View stats & history" leaves the
+  400 ms AI timer armed on the detached game view; it fires, the AI wins, and
+  `recordIfEnded()` writes to the shared store — after the Stats view has already
+  snapshotted. The tiles and history render one game behind, so the summary stops
+  reconciling with reality until the view is re-entered (FR-STATS-003).
+- **Root cause:** the Game view's timer lifetime is tied to the Menu path only,
+  not to navigation generally; the Stats view reads the store once.
+- **Proposed fix:** two candidates — cancel the AI timer on the stats-link path,
+  or have the Stats view re-read the snapshot on render. Cancelling changes game
+  behaviour (the pending AI move is deferred until Back); re-reading does not.
+  **Preferred: re-read on render**, which also covers any future writer.
+- **Regression guard:** an E2E case that navigates to Stats inside the AI delay
+  window and asserts the totals include the just-finished game.
