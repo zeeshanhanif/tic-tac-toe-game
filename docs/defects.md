@@ -8,7 +8,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-001 | 2026-08-08 | FR-MODE-002/003 · FEAT-002 (setup) | Cosmetic | Two-player mode shows the vs-Computer-only Difficulty + "You play as" controls | Fixed |
 | DEF-002 | 2026-08-09 | FR-AI-003 / NFR-PERF-002 · FEAT-003 (Hard AI) | CI-blocking | Un-memoized minimax exceeds the 500 ms perf test on slow CI hardware (931 ms observed) | Fixed |
 | DEF-003 | 2026-08-11 | FR-STATS-005 / NFR-REL-001/002 · FEAT-004 (stats store) | Latent-crash | `loadState` guards only top-level truthiness, so a partially-corrupt persisted stats object (missing `vsComputer` sub-tree) passes and later crashes `recordResult`/`summarize` — violating the "reset on corrupt shape" contract | Fixed |
-| DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Open |
+| DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Fixed |
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Open |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Open |
 
@@ -124,11 +124,29 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 - **Root cause:** `color-scheme` was set once as a static capability
   declaration; the FEAT-007 theming work added `data-theme` switching without
   bringing `color-scheme` under it.
-- **Proposed fix:** add `:root[data-theme="dark"] { color-scheme: dark; }` and
-  `:root[data-theme="light"] { color-scheme: light; }`. The `light dark` default
-  on bare `:root` stays, so the pre-choice OS default is unaffected.
-- **Regression guard:** extend `tests/e2e/theme.spec.ts` to assert the computed
-  `color-scheme` follows the explicit choice, not the OS preference.
+- **Fix** (`fix(DEF-004)`, `d66a80d`): added `:root[data-theme="dark"] {
+  color-scheme: dark; }` and `:root[data-theme="light"] { color-scheme: light; }`.
+  The `light dark` default on bare `:root` stays, so the pre-choice OS default is
+  unaffected. CSS only — no JS or token changes.
+- **Scope note (review-driven, 2026-08-16):** `index.html:7`'s
+  `<meta name="color-scheme" content="light dark">` is **deliberately not**
+  narrowed. In the production bundle the render-blocking stylesheet follows the
+  anti-FOUC script, so the narrowed CSS wins before first paint — the symptom is
+  unobservable to users. It stays reproducible under `npm run dev` (JS-injected
+  CSS), a **dev-server-only** artifact. Not patched because the meta's effect is
+  not observable through computed style, so a fix would ship unverifiable and
+  unguarded. **Open question surfaced to the user**, not self-resolved.
+- **Regression guard:** `tests/e2e/theme.spec.ts` — the computed `color-scheme`
+  follows an explicit choice in both directions (light OS + Dark, dark OS +
+  Light), plus a separate case asserting the `light dark` fallback with
+  `data-theme` absent. The second case was added during acceptance
+  (`01db68d`) after the review gate found the original block tautological; it is
+  mutation-checked (deleting the bare rule fails it with `normal`).
+- **Verification:** failing test first (red against the pre-fix bundle:
+  `Expected "dark" / Received "light dark"`); after the fix, ESLint clean,
+  71 unit + 14 E2E green, incl. a direct AC-6 probe under a throwing
+  `localStorage` (no page errors). FEAT-007 re-verified — see its acceptance
+  report's DEF-004 re-verification.
 
 ## DEF-005 — Two interactive controls breach the 44×44 touch minimum
 
