@@ -1,9 +1,65 @@
 # Acceptance Report: FEAT-007 — Light/dark theming
 
 > Verdict: **Accepted** · Date: 2026-08-10
+> Re-verification (DEF-004): **Accepted (holds)** · Date: 2026-08-16
 > Auditor: acceptance-verification (independent, standard re-derived from SRS /
 > use-cases.md / technical-design §6 — not from tasks.md or the delivery summary)
 > Implements: FR-THEME-001 (M), FR-THEME-002 (S), FR-THEME-003 (S) · Realizes: UC-08
+
+## DEF-004 re-verification — 2026-08-16 (Accepted, holds)
+
+> Repo state audited: `01db68d` · Fix under audit: `d66a80d`
+
+Triggered by the milestone code review. **DEF-004:** `color-scheme` was pinned to
+`light dark` on `:root` and never narrowed per theme, so while the token palette
+followed `data-theme`, the UA kept resolving scrollbars and the pre-paint canvas
+from `prefers-color-scheme` alone — a dark page framed in light chrome on a
+light-mode OS. This was a **latent gap in AC-1**: the criterion says the theme
+"applies immediately (`data-theme` flips; colors change without reload)", which
+the token layer satisfies on its own. FR-THEME-001 ("let the user switch between
+light and dark themes") governs the application's appearance, not just its custom
+properties — so AC-1 under-encoded its FR, the same pattern DEF-003 exposed in
+AC-6.
+
+- **Fix audited** (`fix(DEF-004)`, `d66a80d`): adds
+  `:root[data-theme="light"] { color-scheme: light }` and the `dark` counterpart
+  to `src/style.css`, leaving the bare `:root { color-scheme: light dark }`
+  default in place. No JS or token changes; `theme.ts` is untouched.
+- **Failing test first:** the regression case was written before the fix and
+  observed red against the pre-fix bundle —
+  `Expected: "dark" / Received: "light dark"` at `theme.spec.ts:51`.
+- **Test corrected during this audit** (`01db68d`): the fix's third assertion
+  block claimed to cover the bare-`:root` default but was **tautological** — the
+  anti-FOUC script always writes a concrete `data-theme`, so the narrowing rule
+  satisfied it and the bare rule had **zero** coverage (deleting it left every
+  theme test green). Split into a case that removes `data-theme` explicitly and
+  asserts `light dark`. **Mutation-checked:** deleting the bare rule now fails it
+  with `normal`, confirming the rule is load-bearing and that
+  `<meta name="color-scheme">` does *not* feed the computed CSS property.
+- **AC re-check:** AC-1 now holds in both directions (light OS + Dark choice →
+  `dark`; dark OS + Light choice → `light`). AC-3 (OS default, no saved choice)
+  and AC-5 (explicit choice wins) unaffected and re-observed green. **AC-6**
+  (NFR-REL-002) re-verified directly under a `localStorage` that throws on
+  access: the app boots, applies the OS-default theme, toggling still works for
+  the session, `color-scheme` narrows correctly, and **zero page errors** were
+  captured.
+- **Independent execution (this run, current repo state):** ESLint clean ·
+  **71 unit tests** green · **14 E2E** green (13 committed + the throwaway AC-6
+  storage-dead probe, run from the harness and removed afterward) · `tsc` +
+  Vite build clean.
+- **Scope note (review-driven, 2026-08-16):** `index.html:7`'s
+  `<meta name="color-scheme" content="light dark">` is **deliberately not**
+  narrowed, though DEF-004's observation names it. In the production bundle the
+  render-blocking `<link rel="stylesheet">` follows the anti-FOUC script, so the
+  narrowed CSS wins before first paint and the symptom is unobservable. It
+  remains reproducible under `npm run dev`, where `style.css` is JS-injected —
+  a **dev-server-only** artifact. Left open rather than patched because the
+  meta's effect is not observable through computed style (see the mutation
+  result above), so any fix would ship unverifiable and unguarded. Recorded in
+  the ledger and surfaced to the user rather than self-resolved.
+- **Verdict:** **Accepted (holds)** — the user-facing defect is closed and now
+  genuinely guarded. DEF-004 → **Fixed**. RTM unchanged (Test ref for
+  FR-THEME-001/002/003 already points at this report).
 
 ## Verdict summary
 

@@ -11,8 +11,20 @@
   box-sizing: border-box;
 }
 
+/* Before any explicit choice, let the UA resolve chrome from the OS preference
+   (matches the anti-FOUC default in index.html). Once the user picks a theme,
+   `data-theme` must narrow it so scrollbars and other UA-rendered chrome follow
+   the choice rather than the OS — FR-THEME-001, DEF-004. */
 :root {
   color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
