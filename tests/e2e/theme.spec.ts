@@ -31,6 +31,38 @@ test.describe("FEAT-007 — theming", () => {
     await expect(html(page)).toHaveAttribute("data-theme", "light");
   });
 
+  // DEF-004 regression: the explicit choice must reach UA-rendered chrome
+  // (scrollbars, pre-paint canvas), not just the token palette. A `color-scheme`
+  // left at `light dark` lets the UA keep resolving from prefers-color-scheme,
+  // so a dark page on a light-mode OS gets light scrollbars (FR-THEME-001).
+  const colorScheme = (p: import("@playwright/test").Page) =>
+    p.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+
+  test("an explicit theme choice narrows color-scheme for UA chrome (DEF-004)", async ({
+    page,
+  }) => {
+    // Light-mode OS, user chooses Dark → UA must render dark chrome.
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/");
+    await expect(html(page)).toHaveAttribute("data-theme", "light");
+
+    await page.getByRole("button", { name: "Dark" }).click();
+    await expect(html(page)).toHaveAttribute("data-theme", "dark");
+    expect(await colorScheme(page)).toBe("dark");
+
+    // Dark-mode OS, user chooses Light → the inverse must hold.
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.getByRole("button", { name: "Light" }).click();
+    await expect(html(page)).toHaveAttribute("data-theme", "light");
+    expect(await colorScheme(page)).toBe("light");
+
+    // No explicit choice → the UA default stays responsive to the OS (AC-3).
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await expect(html(page)).toHaveAttribute("data-theme", "dark"); // OS default
+    expect(await colorScheme(page)).toBe("dark");
+  });
+
   test("the theme toggle is present on every screen (AC-2)", async ({ page }) => {
     await page.goto("/");
 
