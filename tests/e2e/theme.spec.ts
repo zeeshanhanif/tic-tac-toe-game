@@ -56,11 +56,24 @@ test.describe("FEAT-007 — theming", () => {
     await expect(html(page)).toHaveAttribute("data-theme", "light");
     expect(await colorScheme(page)).toBe("light");
 
-    // No explicit choice → the UA default stays responsive to the OS (AC-3).
+    // No explicit choice → the OS default still drives both attribute and chrome.
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await expect(html(page)).toHaveAttribute("data-theme", "dark"); // OS default
     expect(await colorScheme(page)).toBe("dark");
+  });
+
+  // The bare `:root { color-scheme: light dark }` default is what covers the
+  // window before `data-theme` exists (script threw / storage blocked / no JS).
+  // The anti-FOUC script normally always sets the attribute, so this case is
+  // only reachable with it explicitly absent — without this test the bare rule
+  // has no coverage and can be deleted with every other theme test still green.
+  test("with no data-theme, color-scheme falls back to the OS-responsive default", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.evaluate(() => document.documentElement.removeAttribute("data-theme"));
+    expect(await colorScheme(page)).toBe("light dark");
   });
 
   test("the theme toggle is present on every screen (AC-2)", async ({ page }) => {
