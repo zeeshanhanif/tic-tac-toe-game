@@ -11,6 +11,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Fixed |
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Open |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Open |
+| DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Open |
 
 ---
 
@@ -187,3 +188,34 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   **Preferred: re-read on render**, which also covers any future writer.
 - **Regression guard:** an E2E case that navigates to Stats inside the AI delay
   window and asserts the totals include the just-finished game.
+
+## DEF-007 — Horizontal overflow at the 320 px minimum viewport
+
+- **Observed (during DEF-005 verification, 2026-08-20):** at a 320×640 touch
+  viewport the Setup screen scrolls horizontally — `document.documentElement`
+  reports `scrollWidth 348` vs `clientWidth 320`. The overflowing nodes are
+  `div.toggle` (width 120, right edge 348) and its right-hand `button.seg-opt`.
+- **Owning feature:** FEAT-007 (the theme toggle placed the second element into
+  the top bar; the bar had only the wordmark before).
+- **Not caused by DEF-005.** Measured on both sides of `fix(DEF-005)` (`576bbf6`)
+  with identical results — `scrollWidth 348`, same overflowing nodes. The DEF-005
+  fix changed control *heights* only; the toggle's width is 120 px before and
+  after.
+- **Impact:** **NFR-COMPAT-002** — "the layout shall remain usable from a 320 px
+  wide viewport." Content stays reachable by scrolling, so *usable* is arguably
+  survived; but design.md §3 is explicit that the single column is "fluid from
+  320px … **no breakpoints or layout reflow needed**", and a horizontal
+  scrollbar at the minimum supported width contradicts that strategy. The
+  interpretive latitude in "usable" is why this is filed for a decision rather
+  than treated as self-evident.
+- **Root cause:** `.topbar` is a `display: flex` row with **no `flex-wrap`**
+  (unlike `.topbar-actions`, which does wrap). At 320 px the stage padding leaves
+  a 280 px column, while the wordmark (~190 px) + gap (8) + toggle (120) needs
+  ~318 px.
+- **Candidate fixes (not applied — owner's call):** allow `.topbar` to wrap; or
+  reduce the wordmark's size/tracking below a width threshold; or let the toggle
+  shrink. Each is a **visual** change to a screen the design system specifies
+  (SCR-WEB-001/002/004 top bar), so this likely wants ui-design/design-system
+  involvement rather than a local CSS patch.
+- **Regression guard (proposed):** an E2E case at a 320 px viewport asserting
+  `scrollWidth <= clientWidth` on each screen.
