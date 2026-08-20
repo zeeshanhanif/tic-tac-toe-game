@@ -9,7 +9,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-002 | 2026-08-09 | FR-AI-003 / NFR-PERF-002 · FEAT-003 (Hard AI) | CI-blocking | Un-memoized minimax exceeds the 500 ms perf test on slow CI hardware (931 ms observed) | Fixed |
 | DEF-003 | 2026-08-11 | FR-STATS-005 / NFR-REL-001/002 · FEAT-004 (stats store) | Latent-crash | `loadState` guards only top-level truthiness, so a partially-corrupt persisted stats object (missing `vsComputer` sub-tree) passes and later crashes `recordResult`/`summarize` — violating the "reset on corrupt shape" contract | Fixed |
 | DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Fixed |
-| DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Open |
+| DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Open |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Open |
 
@@ -162,10 +162,35 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 - **Root cause:** omission, not a deliberate exception — every other interactive
   control in the sheet sets `min-height: var(--layout-touchTargetMin)`
   explicitly (`.mode`, `.seg button`, `.pill`, `.btn`, `.back`, `.cell`).
-- **Proposed fix:** add `min-height: var(--layout-touchTargetMin)` to both rules,
-  matching the established pattern. No token changes.
-- **Regression guard:** an E2E assertion on the bounding-box height of the theme
-  toggle segments and the footer link.
+- **Measured before the fix:** toggle segment **32 px** tall, footer link
+  **29 px** — both under the 44 px floor, confirmed by bounding box.
+- **Fix** (`fix(DEF-005)`, `576bbf6`): `min-height: var(--layout-touchTargetMin)`
+  on both rules, matching the pattern the other seven controls already use, with
+  flex centering so labels stay optically centered in the taller box. The link's
+  underline moves from `border-bottom` to `text-decoration` (+ offset/thickness)
+  so it keeps hugging the text instead of sinking to the bottom. No token
+  changes; no markup changes.
+- **Sweep:** every `button`/`a`/`[role=button]` across Setup (both modes), Game,
+  Stats and the reset dialog measured ≥ 44×44 after the fix — these two were the
+  only offenders, so no further defect was filed.
+- **Note:** the `min-width` added alongside on `.seg-opt` **never binds** today
+  (the 13/700 "Light"/"Dark" labels plus 24 px padding already exceed 44 px). It
+  is forward-insurance for a shorter or localized label, not a live guard — the
+  fix commit's message overstates it as newly guarded.
+- **Regression guard:** `tests/e2e/touch-targets.spec.ts` — bounding-box
+  assertions on the toggle segments (Setup/Game/Stats) and the stats link
+  (Setup/Game). Strengthened during acceptance (`49bc57c`) after the review gate
+  found two holes: `Math.round` rounded *up* toward the floor (43.5 → 44 passed),
+  and the guard ran only at a desktop mouse viewport though NFR-USE-002 is about
+  *touch* devices. Now compares raw floats and runs at desktop, 390 px and
+  320 px touch viewports. Mutation-checked at all three: removing either
+  `min-height` fails every case with the real pre-fix value.
+- **Verification:** failing test first (32 px / 29 px observed red); after the
+  fix ESLint clean, 71 unit + 17 E2E green, `tsc`/Vite build clean, and a browser
+  visual check of the taller toggle and the relocated underline. FEAT-005 and
+  FEAT-007 re-verified — see their acceptance reports' DEF-005 re-verification.
+- **Discovered while verifying:** **DEF-007** (320 px horizontal overflow) —
+  pre-existing, measured identical on both sides of this fix; filed separately.
 
 ## DEF-006 — Stats view can show counts one game behind
 
