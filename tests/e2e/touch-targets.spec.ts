@@ -4,58 +4,73 @@
 // and the footer stats link shipped without `min-height`, unlike every other
 // control in the sheet.
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
 
 const MIN = 44; // --layout-touchTargetMin
 
-async function expectMinTarget(locator: import("@playwright/test").Locator, label: string) {
+// Compare the raw float, never a rounded value: Math.round(43.5) === 44 would
+// let a target land half a pixel under the floor and still pass.
+async function expectMinTarget(locator: Locator, label: string) {
   await expect(locator, `${label} should be visible`).toBeVisible();
   const box = await locator.boundingBox();
   expect(box, `${label} has no bounding box`).not.toBeNull();
-  expect(
-    Math.round(box!.height),
-    `${label} height ${box!.height}px is below the ${MIN}px touch minimum (NFR-USE-002)`,
-  ).toBeGreaterThanOrEqual(MIN);
-  expect(
-    Math.round(box!.width),
-    `${label} width ${box!.width}px is below the ${MIN}px touch minimum (NFR-USE-002)`,
-  ).toBeGreaterThanOrEqual(MIN);
+  expect(box!.height, `${label} height is ${box!.height}px, under the ${MIN}px floor`).
+    toBeGreaterThanOrEqual(MIN);
+  expect(box!.width, `${label} width is ${box!.width}px, under the ${MIN}px floor`).
+    toBeGreaterThanOrEqual(MIN);
+}
+
+const toggle = (p: Page, name: "Light" | "Dark") => p.getByRole("button", { name });
+const statsLink = (p: Page) => p.getByRole("button", { name: "View stats & history" });
+
+async function startTwoPlayerGame(page: Page) {
+  await page.getByText("2 Players").click();
+  await page.getByRole("button", { name: "Start Game" }).click();
+}
+
+// The whole assertion sweep, run once per viewport class below.
+async function assertAllTargets(page: Page, at: string) {
+  await page.goto("/");
+  await expectMinTarget(toggle(page, "Light"), `${at} Setup: Light segment`);
+  await expectMinTarget(toggle(page, "Dark"), `${at} Setup: Dark segment`);
+  await expectMinTarget(statsLink(page), `${at} Setup: stats link`);
+
+  await startTwoPlayerGame(page);
+  await expectMinTarget(toggle(page, "Light"), `${at} Game: Light segment`);
+  await expectMinTarget(toggle(page, "Dark"), `${at} Game: Dark segment`);
+  await expectMinTarget(statsLink(page), `${at} Game: stats link`);
+
+  await statsLink(page).click();
+  await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
+  await expectMinTarget(toggle(page, "Light"), `${at} Stats: Light segment`);
+  await expectMinTarget(toggle(page, "Dark"), `${at} Stats: Dark segment`);
 }
 
 test.describe("NFR-USE-002 — touch targets (DEF-005)", () => {
-  test("the theme toggle segments meet the 44px minimum on every screen", async ({ page }) => {
-    await page.goto("/");
-
-    // Setup
-    await expectMinTarget(page.getByRole("button", { name: "Light" }), "Setup: Light segment");
-    await expectMinTarget(page.getByRole("button", { name: "Dark" }), "Setup: Dark segment");
-
-    // Game
-    await page.getByText("2 Players").click();
-    await page.getByRole("button", { name: "Start Game" }).click();
-    await expectMinTarget(page.getByRole("button", { name: "Light" }), "Game: Light segment");
-    await expectMinTarget(page.getByRole("button", { name: "Dark" }), "Game: Dark segment");
-
-    // Stats
-    await page.getByRole("button", { name: "View stats & history" }).click();
-    await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
-    await expectMinTarget(page.getByRole("button", { name: "Light" }), "Stats: Light segment");
-    await expectMinTarget(page.getByRole("button", { name: "Dark" }), "Stats: Dark segment");
+  test("toggle segments and stats link meet the 44px floor (desktop)", async ({ page }) => {
+    await assertAllTargets(page, "desktop");
   });
 
-  test("the footer stats link meets the 44px minimum on Setup and Game", async ({ page }) => {
-    await page.goto("/");
+  // NFR-USE-002 is specifically about *touch devices*, and the suite's only
+  // Playwright project is Desktop Chrome — so without this block a regression
+  // that only appears at a mobile viewport (e.g. a new rule inside the
+  // `@media (max-width: 360px)` block trimming padding) would slip through the
+  // very guard written to prevent it.
+  test.describe("on a touch viewport", () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
-    await expectMinTarget(
-      page.getByRole("button", { name: "View stats & history" }),
-      "Setup: stats link",
-    );
+    test("toggle segments and stats link meet the 44px floor (mobile)", async ({ page }) => {
+      await assertAllTargets(page, "mobile-390");
+    });
+  });
 
-    await page.getByText("2 Players").click();
-    await page.getByRole("button", { name: "Start Game" }).click();
-    await expectMinTarget(
-      page.getByRole("button", { name: "View stats & history" }),
-      "Game: stats link",
-    );
+  // 360px is the breakpoint the sheet actually reacts to; 320px is the narrowest
+  // viewport NFR-COMPAT-002 supports. Targets must hold at both.
+  test.describe("at the narrowest supported viewport", () => {
+    test.use({ viewport: { width: 320, height: 640 }, hasTouch: true, isMobile: true });
+
+    test("toggle segments and stats link meet the 44px floor (320px)", async ({ page }) => {
+      await assertAllTargets(page, "mobile-320");
+    });
   });
 });
