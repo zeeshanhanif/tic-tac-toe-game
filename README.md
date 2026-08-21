@@ -128,4 +128,4 @@ This project was built document-first; each stage's output lives in `docs/`:
 
 ## License
 
-None specified.
+[MIT](LICENSE) © 2026 Zeeshan Hanif

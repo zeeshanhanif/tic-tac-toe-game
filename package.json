@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Browser-based Tic-Tac-Toe game — client-side static SPA (see docs/).",
+  "license": "MIT",
+  "author": "Zeeshan Hanif <zeeshanhanif@gmail.com>",
   "scripts": {
     "gen:tokens": "node scripts/gen-tokens.mjs",
     "predev": "npm run gen:tokens",
