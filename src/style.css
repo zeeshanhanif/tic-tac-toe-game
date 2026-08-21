@@ -102,6 +102,9 @@ body {
   box-shadow: var(--elevation-card);
 }
 
+/* DEF-005: the segments carried no minimum, leaving them ~32px tall — below the
+   44px touch floor design.md §9 rule 4 sets for every control. Flex centering
+   keeps the 13/700 label optically centered in the taller box. */
 .toggle .seg-opt {
   font-family: inherit;
   border: none;
@@ -112,6 +115,11 @@ body {
   color: var(--color-muted);
   padding: 6px 12px;
   border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--layout-touchTargetMin);
+  min-width: var(--layout-touchTargetMin);
 }
 
 .toggle .seg-opt.on {
@@ -625,6 +633,10 @@ body {
   display: flex;
   justify-content: center;
 }
+/* DEF-005: this was ~29px tall — below the 44px touch floor (design.md §9
+   rule 4), and it is the primary entry to the Stats view on Setup and Game.
+   The underline moves from `border-bottom` to `text-decoration` so it keeps
+   hugging the text instead of sinking to the bottom of the taller box. */
 .footer .link {
   background: none;
   border: none;
@@ -633,8 +645,15 @@ body {
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-base);
   cursor: pointer;
-  border-bottom: 2px solid var(--color-line);
-  padding: var(--space-1) 0 var(--space-2);
+  text-decoration: underline;
+  text-decoration-color: var(--color-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: var(--space-2);
+  padding: var(--space-1) var(--space-4) var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--layout-touchTargetMin);
 }
 
 /* ---- Reset stats trigger (SCR-WEB-004 supplement, FEAT-006) ---- */

@@ -2,9 +2,38 @@
 
 > Verdict: **Accepted** · Date: 2026-08-10
 > Re-verification (DEF-004): **Accepted (holds)** · Date: 2026-08-16
+> Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
 > Auditor: acceptance-verification (independent, standard re-derived from SRS /
 > use-cases.md / technical-design §6 — not from tasks.md or the delivery summary)
 > Implements: FR-THEME-001 (M), FR-THEME-002 (S), FR-THEME-003 (S) · Realizes: UC-08
+
+## DEF-005 re-verification — 2026-08-20 (Accepted, holds)
+
+> Repo state audited: `49bc57c` · Fix under audit: `576bbf6`
+
+Scoped to this feature's share of **DEF-005**: the theme-toggle segments — present
+on every screen (AC-2) — measured **32 px** tall against the 44 px floor
+NFR-USE-002 requires and design.md §9 rule 4 applies to every control.
+
+- **Fix audited:** `min-height` / `min-width: var(--layout-touchTargetMin)` plus
+  flex centering on `.toggle .seg-opt`. No JS, token or markup changes.
+- **Design-system check:** design.md's `toggle` spec fixes the container's
+  padding (3 px), radius (999) and label type (13/700) but states **no segment
+  height**, so raising it to 44 px conforms to rule 4 rather than forking the
+  spec — no design-system escalation needed. The visible consequence is a taller
+  pill in the top bar, confirmed by browser screenshot to read as a deliberate
+  control.
+- **Failing test first:** red at 32 px before the fix; green at 44 px after.
+- **Feature criteria re-checked:** AC-1 (instant switch), AC-2 (toggle on Setup /
+  Game / Stats), AC-3 (OS default), AC-4 (persists across reload) and the DEF-004
+  `color-scheme` narrowing all re-run green — the segments' box changed, their
+  roles, names and handlers did not.
+- **`min-width` caveat:** it does not bind today (labels + padding already exceed
+  44 px), so the width half of the guard proves nothing about the current UI. It
+  is forward-insurance for a shorter or localized label; recorded so the test is
+  not over-read as evidence.
+- **Verdict:** **Accepted (holds)** — theming behaviour unchanged, the NFR breach
+  closed and guarded at desktop, 390 px and 320 px viewports. RTM unchanged.
 
 ## DEF-004 re-verification — 2026-08-16 (Accepted, holds)
 

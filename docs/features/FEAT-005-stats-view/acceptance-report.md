@@ -1,8 +1,36 @@
 # Acceptance Report: FEAT-005 — Statistics & History view
 
 > Verdict: **Accepted** · Date: 2026-08-09
+> Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
 > Standard: technical-design.md §6 (6 criteria) · Sources: srs.md, use-cases.md, architecture.md (ADR-006 / CF-2)
 > Repo state audited: HEAD (00a3160) — FEAT-005 fully committed
+
+## DEF-005 re-verification — 2026-08-20 (Accepted, holds)
+
+> Repo state audited: `49bc57c` · Fix under audit: `576bbf6`
+
+Scoped to this feature's share of **DEF-005**: the footer "View stats & history"
+link — FEAT-005's primary entry point to the Stats view on both Setup and Game —
+measured **29 px** tall, under the 44 px floor NFR-USE-002 requires and design.md
+§9 rule 4 applies to every control.
+
+- **Fix audited:** `min-height: var(--layout-touchTargetMin)` plus flex centering
+  on `.footer .link`, with the underline moved from `border-bottom` to
+  `text-decoration` so it keeps hugging the text rather than sinking to the
+  bottom of the taller box. Markup untouched (`setup.ts` / `game.ts` unchanged) —
+  so none of FEAT-005's own criteria change behaviour.
+- **Failing test first:** red at 29 px before the fix; green at 44 px after.
+- **Feature criteria re-checked:** the CF-2 E2E flow (stats reflect a played
+  game, filter, back) and the empty-state case re-run green — the link's box
+  changed, its role/name/handler did not.
+- **Systemic note:** NFR-USE-002 was verified once, in **FEAT-001's AC-16**,
+  when only FEAT-001's controls existed. FEAT-005 added a control afterwards and
+  no criterion re-checked the cross-cutting NFR — which is how a 29 px target
+  shipped through acceptance. The new `touch-targets.spec.ts` now covers this
+  NFR across screens rather than per-feature, closing the class of gap rather
+  than this instance.
+- **Verdict:** **Accepted (holds)** — no behaviour change to FEAT-005's criteria;
+  the NFR breach it carried is closed and guarded. RTM unchanged.
 
 ## Verdict summary
 
