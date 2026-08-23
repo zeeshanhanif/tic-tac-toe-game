@@ -9,9 +9,10 @@
 // timer rather than on a human click.
 
 import { test, expect, type Page } from "@playwright/test";
-
-const STATS_KEY = "ttt:stats:v1";
-const AI_DELAY_MS = 400;
+// Imported, not copied: a bumped storage key or a longer AI delay would other-
+// wise make these tests pass vacuously instead of failing.
+import { STATS_KEY } from "../../src/infra/stats-store.ts";
+import { AI_DELAY_MS } from "../../src/ui/views/game.ts";
 
 type WLD = { wins: number; losses: number; draws: number };
 
@@ -63,6 +64,14 @@ test.describe("DEF-006 — Stats view freshness", () => {
     await page.getByRole("button", { name: "View stats & history" }).click();
     await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
 
+    // Pin the premise. If navigation ever loses the race with the 400ms timer,
+    // the game would already be over on arrival and the rest of this test would
+    // pass without exercising anything — a silent no-op guard. Fail loudly.
+    expect(
+      (await persistedTotals(page)).history,
+      "the AI move should still be pending on arrival at Stats — this test's premise",
+    ).toBe(0);
+
     // Wait well past the delay: whatever the app does with the pending move, the
     // rendered tiles and the persisted store must not contradict each other.
     await page.waitForTimeout(AI_DELAY_MS * 3);
@@ -82,6 +91,10 @@ test.describe("DEF-006 — Stats view freshness", () => {
 
     await page.getByRole("button", { name: "View stats & history" }).click();
     await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
+    expect(
+      (await persistedTotals(page)).history,
+      "the AI move should still be pending on arrival at Stats — this test's premise",
+    ).toBe(0);
     await page.waitForTimeout(AI_DELAY_MS * 3);
 
     // Back to the same game — the deferred AI move must still happen, or the

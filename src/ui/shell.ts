@@ -21,6 +21,11 @@ export function mountShell(root: HTMLElement): void {
   let currentGameView: GameView | null = null;
 
   function showSetup(): void {
+    // Every exit from the game pauses it. The Menu handler already cancels, so
+    // this is belt-and-braces today — but it keeps the invariant "the shell owns
+    // the timer lifecycle" true at *all* exits, rather than leaving one of them
+    // depending on the view to cancel itself (DEF-006).
+    currentGameView?.pause();
     currentGameView = null;
     app.replaceChildren(createSetupView({ onStart: showGame, onViewStats: () => showStats(showSetup) }));
   }

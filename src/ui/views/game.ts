@@ -28,7 +28,9 @@ export interface GameView {
   resume: () => void;
 }
 
-const AI_DELAY_MS = 400; // brief perceptible delay (FR-AI-004)
+/** Brief perceptible delay before the AI moves (FR-AI-004). Exported so tests
+ *  time the AI window from the real value instead of a copy that can drift. */
+export const AI_DELAY_MS = 400;
 
 export function createGameView(
   config: GameConfig,
