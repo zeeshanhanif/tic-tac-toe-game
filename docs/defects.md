@@ -10,7 +10,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-003 | 2026-08-11 | FR-STATS-005 / NFR-REL-001/002 · FEAT-004 (stats store) | Latent-crash | `loadState` guards only top-level truthiness, so a partially-corrupt persisted stats object (missing `vsComputer` sub-tree) passes and later crashes `recordResult`/`summarize` — violating the "reset on corrupt shape" contract | Fixed |
 | DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Fixed |
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
-| DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Open |
+| DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Open |
 
 ---
@@ -207,12 +207,42 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   reconciling with reality until the view is re-entered (FR-STATS-003).
 - **Root cause:** the Game view's timer lifetime is tied to the Menu path only,
   not to navigation generally; the Stats view reads the store once.
-- **Proposed fix:** two candidates — cancel the AI timer on the stats-link path,
-  or have the Stats view re-read the snapshot on render. Cancelling changes game
-  behaviour (the pending AI move is deferred until Back); re-reading does not.
-  **Preferred: re-read on render**, which also covers any future writer.
-- **Regression guard:** an E2E case that navigates to Stats inside the AI delay
-  window and asserts the totals include the just-finished game.
+- **Proposed fix (superseded — both candidates were wrong):** the original entry
+  preferred *"re-read the snapshot on render"* over cancelling the timer.
+  Diagnosis at fix time showed **re-reading does not fix this at all**: the Stats
+  view renders once at construction and nothing triggers a re-render after the
+  background write, so it would have shipped as a no-op that looked like a fix.
+  The other candidate, *cancel without resuming*, **freezes the game** — nothing
+  re-arms the AI turn, so on return it is permanently the AI's move and human
+  clicks are correctly ignored. Recorded here rather than quietly overwritten,
+  since the original guard spec ("assert the totals *include* the just-finished
+  game") asserted the opposite of what the shipped behaviour should be.
+- **Fix** (`fix(DEF-006)`, `95ed648`, hardened in `5ca6af2`): `createGameView`
+  now returns `GameView { element, pause, resume }`. The shell pauses the AI
+  timer when leaving for Stats and resumes on return, so no move is played — and
+  nothing recorded — while the view is detached. **Resuming matters as much as
+  pausing**; both halves are mutation-checked. Every lifecycle exit
+  (`showSetup`, Menu, `startNewGame`) now pauses, so the invariant "the shell
+  owns the timer lifecycle" holds at all exits.
+- **Accepted trade-off (surfaced, not self-resolved):** an armed AI move is now
+  **deferred for as long as the user stays in Stats**, and its 400 ms delay
+  restarts on return. A user bouncing in and out repeatedly can defer the move
+  indefinitely. This is a deliberate behaviour change and the price of the fix:
+  the alternative is a detached view mutating shared state, which is DEF-006
+  itself. No requirement constrains *when* the AI move lands relative to
+  navigation (FR-AI-004 specifies only a brief delay before it moves), so this
+  conforms — but it is a UX judgement the owner may want to revisit.
+- **Regression guard:** `tests/e2e/stats-freshness.spec.ts` — drives a
+  deterministic Hard line (X 0,1,3 → O 4,2,6, so the game ends on the AI's own
+  timer rather than a human click) and asserts the rendered tiles **never
+  disagree with persisted storage**, plus that the deferred move resumes on
+  return and is then recorded. Both tests pin their premise (`history === 0` on
+  arrival) so losing the race with the 400 ms timer fails loudly instead of
+  passing vacuously; `STATS_KEY` and `AI_DELAY_MS` are imported, not copied.
+- **Verification:** failing test first — red with the exact defect signature
+  (*view shows 0 losses, storage holds 1*). After the fix: ESLint clean, 71 unit
+  + 19 E2E green, `tsc`/Vite build clean. FEAT-005 re-verified — see its
+  acceptance report's DEF-006 re-verification.
 
 ## DEF-007 — Horizontal overflow at the 320 px minimum viewport
 
