@@ -2,6 +2,51 @@
 
 > Verdict: **Accepted** · Date: 2026-08-09
 > Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
+> Re-verification (DEF-006): **Accepted (holds)** · Date: 2026-08-23
+
+## DEF-006 re-verification — 2026-08-23 (Accepted, holds)
+
+> Repo state audited: `5ca6af2` · Fix under audit: `95ed648` + `5ca6af2`
+
+**DEF-006:** navigating Game → Stats left the pending 400 ms AI timer running on
+the *detached* game view. It fired, the AI finished the game, and
+`recordIfEnded()` wrote to the shared store **after** `createStatsView` had
+already taken its snapshot — so the tiles and history rendered one game behind.
+This was a latent gap in **AC-1/AC-2** (FR-STATS-003/004): the criteria check
+that the view renders the *stats it read*, never that what it read is still true
+by the time it paints.
+
+- **Fix audited:** `createGameView` returns `GameView { element, pause, resume }`;
+  the shell pauses on the way into Stats and resumes on return. Every lifecycle
+  exit now pauses. No change to FEAT-005's own rendering, filtering, or reset
+  paths — the store it reads is simply no longer mutated behind it.
+- **Failing test first:** red with the exact defect signature — *Stats view shows
+  {wins:0,losses:0,draws:0} but storage holds {wins:0,losses:1,draws:0,
+  history:1}*.
+- **Both halves mutation-checked**, which mattered: removing `pause` reproduces
+  the defect; removing `resume` **freezes the game** (the AI never takes its
+  deferred turn). A fix that only cancelled would have traded a display bug for
+  an unplayable game.
+- **Two earlier candidates rejected on evidence**, both recorded in the ledger:
+  *re-read on render* does not fix it (nothing triggers a re-render after the
+  background write — it would have shipped as a no-op that looked like a fix),
+  and *cancel without resume* is the frozen-game case above.
+- **Feature criteria re-checked:** CF-2 (stats reflect a played game, filter,
+  back), the empty-state case, and the FEAT-006 reset flow all re-run green.
+- **Contract change:** `createGameView`'s return type changed from `HTMLElement`
+  to `GameView`. No design document specifies that signature, and ADR-003
+  ("keep timers … in the shell") is satisfied — the timer stays in the `ui/`
+  layer, now under explicit shell control. **No design amendment required.**
+- **Trade-off carried, not hidden:** the deferred AI move restarts its 400 ms
+  delay on every Stats round trip, and a user bouncing in and out can defer it
+  indefinitely. No requirement constrains when the AI move lands relative to
+  navigation, so this conforms — recorded in the ledger and surfaced to the
+  owner as a UX judgement rather than settled here.
+- **Independent execution (this run):** ESLint clean · **71 unit** · **19 E2E** ·
+  `tsc` + Vite build clean.
+- **Verdict:** **Accepted (holds)** — FEAT-005's criteria are unaffected and the
+  staleness that breached FR-STATS-003 is closed and guarded. DEF-006 →
+  **Fixed**. RTM unchanged.
 > Standard: technical-design.md §6 (6 criteria) · Sources: srs.md, use-cases.md, architecture.md (ADR-006 / CF-2)
 > Repo state audited: HEAD (00a3160) — FEAT-005 fully committed
 

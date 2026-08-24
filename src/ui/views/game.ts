@@ -15,13 +15,28 @@ interface GameViewHandlers {
   onViewStats: () => void; // open the stats view (FR-UI-002)
 }
 
-const AI_DELAY_MS = 400; // brief perceptible delay (FR-AI-004)
+/**
+ * The game view plus its timer lifecycle. The shell keeps one of these alive
+ * across a Stats round trip (D1), so it must be able to stop the pending AI
+ * move while the element is detached and restart it on return — otherwise the
+ * AI plays on to a finish behind the user's back and writes to the stats store
+ * after the Stats view has already read it (DEF-006).
+ */
+export interface GameView {
+  element: HTMLElement;
+  pause: () => void;
+  resume: () => void;
+}
+
+/** Brief perceptible delay before the AI moves (FR-AI-004). Exported so tests
+ *  time the AI window from the real value instead of a copy that can drift. */
+export const AI_DELAY_MS = 400;
 
 export function createGameView(
   config: GameConfig,
   handlers: GameViewHandlers,
   statsStore: StatsStore,
-): HTMLElement {
+): GameView {
   const vsComputer = config.mode === "vs-computer";
   const humanMark: Mark = config.humanMark ?? "X";
   const aiMark: Mark = humanMark === "X" ? "O" : "X";
@@ -209,5 +224,14 @@ export function createGameView(
 
   render();
   scheduleAIIfNeeded(); // AI opens if the human plays O
-  return root;
+
+  return {
+    element: root,
+    // Detached (the user opened Stats): drop the pending AI move so nothing is
+    // played — and nothing is recorded — while this view is off-screen.
+    pause: cancelAI,
+    // Re-attached: re-arm if it is still the AI's turn. `scheduleAIIfNeeded` is
+    // a no-op otherwise, so resuming a human-turn or finished game is safe.
+    resume: scheduleAIIfNeeded,
+  };
 }
