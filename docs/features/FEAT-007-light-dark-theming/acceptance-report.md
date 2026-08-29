@@ -3,6 +3,51 @@
 > Verdict: **Accepted** · Date: 2026-08-10
 > Re-verification (DEF-004): **Accepted (holds)** · Date: 2026-08-16
 > Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
+> Re-verification (DEF-007): **Accepted (holds)** · Date: 2026-08-29 — *design artifacts pending*
+
+## DEF-007 re-verification — 2026-08-29 (Accepted, holds)
+
+> Repo state audited: `70f0627` · Fix under audit: `1ca03bc` + `70f0627`
+
+**DEF-007:** FEAT-007 put a second element (the theme toggle) into a top bar that
+had only carried the wordmark, and `.topbar` did not wrap. At 320 px the two
+needed **327.5 px** of a **280 px** column, so every screen scrolled sideways —
+breaching **NFR-COMPAT-002** ("usable from a 320 px-wide viewport") and
+design.md §3's fluid single column. No FEAT-007 criterion covered narrow
+viewports, which is how it shipped.
+
+- **Fix audited:** `flex-wrap: wrap` on `.topbar`, plus `margin-left: auto` on
+  the trailing control targeted by identity (`.toggle` / `.topbar-actions`)
+  rather than `:last-child`, so appending a third node cannot strand the toggle.
+- **Alternative ruled out by another defect:** shrinking the toggle would breach
+  **DEF-005**'s 44 px floor — its segments already sit on `min-width`, so
+  trimming padding recovers ~24 px of the ~48 px needed. The two fixes constrain
+  each other; recorded so the interaction is not re-litigated later.
+- **Failing test first:** red with *"Setup (320px) scrolls horizontally
+  (348 > 320); overflowing: div.toggle, button.seg-opt"*.
+- **FEAT-007 criteria re-checked:** AC-1 (instant switch), AC-2 (toggle on every
+  screen), AC-3 (OS default), AC-4 (persists), and the DEF-004 `color-scheme`
+  narrowing all re-run green. The toggle moved within the bar; its role, name,
+  handler and the theme pipeline are untouched. DEF-005's touch-target guard
+  still passes at 320/390 px, so the wrap did not shrink any target.
+- **No-op where it fits:** desktop Setup and Game top bars measure identically
+  before and after the change (`wordmark x=430 w=191`, `toggle x=730 w=120`,
+  bar h=52) — confirmed by measurement and screenshot, not assumed.
+- **Visual change carried, not hidden:** the **Stats** header changes at *every*
+  width (bar 108 → 98 px; Back and toggle side by side on their own row instead
+  of stacked in a nested wrap), because that column caps at 460 px while its
+  header needs ~465 px and can never fit one row.
+- **Independent execution (this run):** ESLint clean · **71 unit** · **22 E2E** ·
+  `tsc` + Vite build clean · screenshots of Setup, Game and Stats at 320 px and
+  1280 px.
+- **Open item routed elsewhere:** design.md §3 still says *"No breakpoints or
+  layout reflow needed"* — untrue both before (the layout was not fluid at
+  320 px) and after (the bar now reflows). design.md and any manifest entry for
+  the SCR-WEB-001/002/004 top bar need updating by **ui-design**; acceptance
+  verification does not write design artifacts. Tracked on the DEF-007 ledger
+  row as *design artifacts pending*.
+- **Verdict:** **Accepted (holds)** — theming behaviour unchanged, the
+  NFR-COMPAT-002 breach closed and guarded at three widths. RTM unchanged.
 > Auditor: acceptance-verification (independent, standard re-derived from SRS /
 > use-cases.md / technical-design §6 — not from tasks.md or the delivery summary)
 > Implements: FR-THEME-001 (M), FR-THEME-002 (S), FR-THEME-003 (S) · Realizes: UC-08

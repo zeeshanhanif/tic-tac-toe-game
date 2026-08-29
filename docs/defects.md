@@ -11,7 +11,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-004 | 2026-08-15 | FR-THEME-001 · FEAT-007 (theming) | Visible | `color-scheme` is pinned to `light dark` and never narrowed per theme, so an explicit theme choice does not reach UA-rendered chrome (scrollbars, pre-paint canvas) | Fixed |
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
-| DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Open |
+| DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
 
 ---
 
@@ -267,10 +267,41 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   (unlike `.topbar-actions`, which does wrap). At 320 px the stage padding leaves
   a 280 px column, while the wordmark (~190 px) + gap (8) + toggle (120) needs
   ~318 px.
-- **Candidate fixes (not applied — owner's call):** allow `.topbar` to wrap; or
-  reduce the wordmark's size/tracking below a width threshold; or let the toggle
-  shrink. Each is a **visual** change to a screen the design system specifies
-  (SCR-WEB-001/002/004 top bar), so this likely wants ui-design/design-system
-  involvement rather than a local CSS patch.
-- **Regression guard (proposed):** an E2E case at a 320 px viewport asserting
-  `scrollWidth <= clientWidth` on each screen.
+- **Decision:** the owner directed the fix on 2026-08-29. Of the three candidates,
+  **shrinking the toggle was ruled out by DEF-005** — its segments already sit on
+  the 44 px `min-width` floor, so trimming padding recovers only ~24 px of the
+  ~48 px needed while pushing touch targets to the exact minimum. Shrinking the
+  wordmark needs a breakpoint and a ~25 % type reduction. **Wrapping** was chosen:
+  no breakpoint, no magic width, and a genuine no-op at every width where the row
+  still fits.
+- **Fix** (`fix(DEF-007)`, `1ca03bc`, hardened in `70f0627`): `.topbar` gains
+  `flex-wrap: wrap`, with `margin-left: auto` on the trailing control
+  (`.toggle` / `.topbar-actions`, targeted by identity rather than
+  `:last-child`) so it stays hard right on its own line.
+- **Measured:** before — content needed 327.5 px of a 280 px column
+  (`scrollWidth 348 > 320`). After — no horizontal overflow at 320/360/400 px.
+  Desktop Setup and Game top bars are **byte-identical** before and after
+  (`wordmark x=430 w=191`, `toggle x=730 w=120`, bar h=52).
+- **Visual side effect (all widths, not just narrow):** on **Stats** the column
+  caps at 460 px while its header needs ~465 px, so it can never fit one row.
+  It previously coped by stacking Back above the toggle inside a nested wrap;
+  now the actions occupy their own right-aligned row (bar height 108 → 98, Back
+  and toggle side by side). Verified by screenshot at 320 px and 1280 px.
+- **Open follow-up — design artifacts (owner / ui-design):** `docs/design.md` §3
+  still asserts *"No breakpoints or layout reflow needed"*. The fix adds no
+  breakpoint but does add reflow, and that sentence was **factually wrong** — the
+  layout was not fluid at 320 px, which is this defect. design.md (and any
+  `design-manifest.json` entry for the SCR-WEB-001/002/004 top bar) should record
+  the wrapping bar. **Not edited here:** those are ui-design's artifacts, not the
+  orchestrator's. Until then this row reads *Fixed (design artifacts pending)*.
+- **Regression guard:** `tests/e2e/responsive.spec.ts` — asserts
+  `scrollWidth <= clientWidth` across Setup (both modes), Game and Stats at
+  **320, 360 and 400 px**, naming the offending elements on failure. 400 px is
+  required because the sheet's only media query (`max-width: 360px`) is
+  inclusive, so 320 and 360 both sit inside it. The Game step asserts the board
+  mounted, so a no-op `Start Game` cannot silently re-measure Setup.
+- **Verification:** failing test first — red with
+  *"Setup (320px) scrolls horizontally (348 > 320); overflowing: div.toggle,
+  button.seg-opt"*. After the fix: ESLint clean, 71 unit + 22 E2E green,
+  `tsc`/Vite build clean, and screenshots of all three screens at 320 px and
+  1280 px. FEAT-007 re-verified — see its acceptance report.
