@@ -57,11 +57,22 @@ body {
 }
 
 /* ---- Top bar ---- */
+/* DEF-007: at 320px the wordmark (~191px) + theme toggle (~120px) need ~328px
+   of a 280px column, so the page scrolled sideways — against NFR-COMPAT-002 and
+   design.md §3's fluid single column. Wrapping keeps the bar fluid with no
+   breakpoint and no magic width: it is a no-op at every width where the row
+   still fits, and `margin-left: auto` on the trailing item keeps it hard right
+   on its own line so a wrapped bar reads as deliberate. Mirrors the wrap
+   `.topbar-actions` already uses. */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
+  flex-wrap: wrap;
+}
+.topbar > :last-child {
+  margin-left: auto;
 }
 /* Right-side cluster (Stats header: Back + theme toggle) — FEAT-007. */
 .topbar-actions {
