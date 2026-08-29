@@ -71,7 +71,11 @@ body {
   gap: var(--space-8);
   flex-wrap: wrap;
 }
-.topbar > :last-child {
+/* Target the trailing control by identity, not by position: `:last-child` would
+   silently hand the auto margin to any third node appended later and strand the
+   toggle mid-row on the wrapped line. */
+.topbar > .toggle,
+.topbar > .topbar-actions {
   margin-left: auto;
 }
 /* Right-side cluster (Stats header: Back + theme toggle) — FEAT-007. */

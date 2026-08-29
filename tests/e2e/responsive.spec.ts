@@ -30,9 +30,11 @@ async function expectNoOverflow(page: Page, screen: string) {
   ).toBeLessThanOrEqual(o.clientW);
 }
 
-// 320px is the floor NFR-COMPAT-002 names; 360px is the breakpoint the sheet
-// already reacts to, so both sides of it are worth pinning.
-for (const width of [320, 360]) {
+// 320px is the floor NFR-COMPAT-002 names. The sheet's only media query is
+// `@media (max-width: 360px)`, which is *inclusive* — so 320 and 360 both land
+// inside it, and 400px is needed to exercise the branch above it (e.g.
+// `.confirm-actions`' two-column row, which only applies over 360px).
+for (const width of [320, 360, 400]) {
   test.describe(`NFR-COMPAT-002 — no horizontal overflow at ${width}px (DEF-007)`, () => {
     test.use({ viewport: { width, height: 720 } });
 
@@ -46,6 +48,9 @@ for (const width of [320, 360]) {
 
       await page.getByText("2 Players").click();
       await page.getByRole("button", { name: "Start Game" }).click();
+      // Confirm the Game view actually mounted — without this, a regression that
+      // made Start Game a no-op would silently re-measure Setup and pass green.
+      await expect(page.locator(".board")).toBeVisible();
       await expectNoOverflow(page, `Game (${width}px)`);
 
       await page.getByRole("button", { name: "View stats & history" }).click();
