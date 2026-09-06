@@ -31,6 +31,12 @@
       "skillPath": "skills/initial-deployment/SKILL.md",
       "computedHash": "fdc3c0056e3a32f1da39a2c75ed30a68a4f45e8e26a79723874ceb5015b9ddf3"
     },
+    "pipeline-verify": {
+      "source": "zeeshanhanif/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pipeline-verify/SKILL.md",
+      "computedHash": "92a41fb25c0eb94950baf267e72d786f28538a0e540d916503dcbc8de597fd32"
+    },
     "project-scaffolding": {
       "source": "zeeshanhanif/agent-skills",
       "sourceType": "github",
