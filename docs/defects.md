@@ -14,7 +14,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
 | DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Fixed |
 | DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Fixed (design artifacts pending) |
-| DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Open |
+| DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Fixed |
 | DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Open |
 
 ---
@@ -394,7 +394,16 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   the Vs. Computer and All tiles and win rate would silently exclude it — the
   exact drift the single-source list exists to prevent.
 - **Proposed fix:** fold over `DIFFICULTIES` instead of naming the buckets.
-- **Status:** Open.
+- **Fix** (`fix(DEF-010)`): `summarize` reduces over `DIFFICULTIES` from
+  `emptyWLD()`. Behaviour with today's three levels is unchanged.
+- **Regression guard:** `src/core/stats.difficulty-drift.test.ts` — mocks
+  `./ai.ts` to append an `"expert"` level, records a win there, pins the premise
+  (the bucket exists and holds 1), then asserts the Vs. Computer and All totals
+  count it. In its own file because `vi.mock` is module-wide.
+- **Verification:** failing test first — red with *expected wins 1, received 0*
+  (premise green, so the bucket was created but not summed). After the fix:
+  ESLint clean, `tsc` clean, 72 unit tests green.
+- **Status:** Fixed.
 
 ## DEF-011 — vs-Computer record without a difficulty is filed under Medium
 

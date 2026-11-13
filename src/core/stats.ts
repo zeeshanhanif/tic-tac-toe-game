@@ -123,7 +123,8 @@ function addWLD(a: WLD, b: WLD): WLD {
 /** Aggregate W/L/D for the selected filter (FR-STATS-003). */
 export function summarize(state: StatsState, filter: StatsFilter): WLD {
   const { twoPlayer, vsComputer } = state.stats;
-  const vsAll = addWLD(addWLD(vsComputer.easy, vsComputer.medium), vsComputer.hard);
+  // Folded over DIFFICULTIES, not named buckets, so a new level is counted (DEF-010).
+  const vsAll = DIFFICULTIES.reduce((acc, d) => addWLD(acc, vsComputer[d]), emptyWLD());
   switch (filter) {
     case "two-player":
       return { ...twoPlayer };
