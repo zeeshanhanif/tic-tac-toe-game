@@ -12,7 +12,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
-| DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Open |
+| DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Fixed |
 | DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Open |
 | DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Open |
 | DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Open |
@@ -329,8 +329,24 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 - **Proposed fix:** have the Theme Controller notify on change and let each
   toggle repaint from that, so every live toggle stays in sync regardless of
   which screen changed the theme — fixing it at the source rather than
-  re-rendering the game on resume.
-- **Status:** Open.
+  re-rendering the game on resume. *(Not taken — see Fix.)*
+- **Fix** (`fix(DEF-008)`): `GameView.resume` now re-renders before re-arming
+  the AI. The notify-on-change design was rejected at fix time: toggles are
+  rebuilt on every render, so each would need an unsubscribe the view-less
+  `el()` helpers have no lifecycle for, and the detached game's toggle must still
+  catch a change made while it is off-screen — a listener would leak, and a
+  connected-only listener would miss exactly this case. The single re-attach
+  point is the one place a cached view can go stale, so repainting there fixes
+  this and any other global state the view shows. Re-rendering is cheap and
+  idempotent (no timers armed by `render`).
+- **Regression guard:** `tests/e2e/theme.spec.ts` — "the game's toggle reflects
+  a theme changed on Stats (DEF-008)": change the theme on Stats, go Back, and
+  assert the game's toggle highlights the new theme, for a human-turn game and
+  for an ended game (the two states whose resume previously never rendered).
+- **Verification:** failing test first — red with *Dark toggle class
+  `"seg-opt"`, expected `on`* after a Dark switch on Stats. After the fix:
+  ESLint clean, 71 unit + 23 E2E green.
+- **Status:** Fixed.
 
 ## DEF-009 — "Back to game" shown when Stats was opened from Setup
 
