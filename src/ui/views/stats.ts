@@ -101,7 +101,10 @@ export function createStatsView(statsStore: StatsStore, handlers: StatsViewHandl
     const badge = el("span", `rbadge ${r.result}`, cap(r.result));
     const meta = el("div", "hmeta");
     const title = r.mode === "vs-computer" ? "Vs. Computer" : "2 Players";
-    const subtitle = r.mode === "vs-computer" ? `${cap(r.difficulty ?? "medium")} AI` : "Local match";
+    // The load guard guarantees vs-computer entries carry a difficulty (DEF-011);
+    // the type can't, so fall back to a neutral label rather than guess a level.
+    const subtitle =
+      r.mode === "vs-computer" ? (r.difficulty ? `${cap(r.difficulty)} AI` : "AI") : "Local match";
     meta.append(el("div", "mt", title), el("div", "ms", subtitle));
     row.append(badge, meta, el("div", "htime", relativeTime(r.timestamp)));
     return row;

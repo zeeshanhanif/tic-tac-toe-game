@@ -15,7 +15,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Fixed |
 | DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Fixed (design artifacts pending) |
 | DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Fixed |
-| DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Open |
+| DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Fixed |
 
 ---
 
@@ -421,4 +421,25 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   `mode === "vs-computer"` (so corrupt persisted state resets, per NFR-REL-001 /
   DEF-003), and `recordResult` throws on such a record rather than guessing a
   bucket. Make the `MatchRecord` type say so too.
-- **Status:** Open.
+- **Fix** (`fix(DEF-011)`): `isMatchRecord` rejects a vs-Computer entry with no
+  `difficulty`, so such persisted state resets to defaults through the existing
+  DEF-003 load path; `recordResult` throws instead of defaulting to Medium; the
+  history row no longer guesses "Medium AI" (neutral "AI" for the
+  guard-unreachable case). The only producer, the Game view, always supplies a
+  difficulty in vs-Computer, so no live path throws.
+- **Not taken — type tightening:** turning `MatchRecord` into a discriminated
+  union on `mode` would move the rule into the compiler, but it ripples through
+  the Game view's record construction and the `Partial<MatchRecord>` test
+  helpers in two suites. Left out to keep the fix scoped; a candidate for a
+  later cleanup.
+- **Accepted trade-off:** stored history that has a difficulty-less vs-Computer
+  entry now **resets the whole stats state** on load, the same policy DEF-003
+  set for any malformed entry. The app itself never wrote such entries, so only
+  tampered or externally corrupted data is affected.
+- **Regression guard:** `src/core/stats.test.ts` — the guard rejects a
+  vs-Computer history entry with no difficulty (two-player still needs none);
+  `recordResult` throws on such a record and leaves the input untouched.
+- **Verification:** failing tests first — red with *expected [Function] to
+  throw* and *expected true to be false*. After the fix: ESLint clean, `tsc`
+  clean, 74 unit + 24 E2E green.
+- **Status:** Fixed.

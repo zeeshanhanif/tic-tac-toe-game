@@ -47,6 +47,20 @@ describe("recordResult — tallies (AC-1, FR-STATS-001)", () => {
   });
 });
 
+describe("recordResult — vs-Computer difficulty is required (DEF-011)", () => {
+  it("throws rather than filing a difficulty-less vs-Computer record under a guessed bucket", () => {
+    const s0 = emptyStatsState();
+    // No difficulty: the old code silently counted this as Medium.
+    expect(() => recordResult(s0, at("win", { mode: "vs-computer" }))).toThrow(/difficulty/);
+    expect(s0.stats.vsComputer.medium).toEqual({ wins: 0, losses: 0, draws: 0 });
+    expect(s0.history).toHaveLength(0);
+  });
+
+  it("two-player records still need no difficulty", () => {
+    expect(recordResult(emptyStatsState(), at("win")).stats.twoPlayer.wins).toBe(1);
+  });
+});
+
 describe("recordResult — history (AC-2, FR-STATS-002)", () => {
   it("appends a MatchRecord (result, mode, difficulty, timestamp) at game end", () => {
     let s = emptyStatsState();
@@ -174,6 +188,9 @@ describe("isValidStatsState — full-shape guard (DEF-003, NFR-REL-001)", () => 
     expect(
       isValidStatsState({ ...base, history: [{ mode: "vs-computer", difficulty: "insane", result: "win", timestamp: 1 }] }),
     ).toBe(false); // bad difficulty
+    expect(
+      isValidStatsState({ ...base, history: [{ mode: "vs-computer", result: "win", timestamp: 1 }] }),
+    ).toBe(false); // vs-computer with no difficulty (DEF-011) — FR-STATS-002 requires it
     // Well-formed entries (two-player without difficulty; vs-computer with) pass.
     expect(
       isValidStatsState({
