@@ -13,7 +13,7 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
 | DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Fixed |
-| DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Open |
+| DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Fixed (design artifacts pending) |
 | DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Open |
 | DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Open |
 
@@ -363,7 +363,22 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 - **Proposed fix:** the caller supplies the label with the handler — "‹ Back to
   game" from Game (unchanged), "‹ Back to menu" from Setup (matching the Game
   screen's own "Menu" wording for that destination).
-- **Status:** Open.
+- **Fix** (`fix(DEF-009)`): `StatsViewHandlers` gains a required `backLabel`;
+  the shell passes "‹ Back to game" from Game and "‹ Back to menu" from Setup.
+  Required rather than defaulted, so a future entry point cannot silently
+  inherit the wrong label.
+- **Design artifacts:** ux-foundations (nav model, "Back to game" on Stats) and
+  FEAT-005's ui-design describe only the Game-origin label. **Not edited here** —
+  they are ux-foundations' / ui-design's artifacts; they should record the
+  Setup-origin "‹ Back to menu".
+- **Regression guard:** `tests/e2e/review-stats.spec.ts` — "from Setup, Back is
+  labelled for the menu and returns there (DEF-009)": no "Back to game" button
+  exists, and the exact "‹ Back to menu" button lands on Setup. The existing
+  CF-2 test still covers the Game-origin label.
+- **Verification:** failing test first — red with *expected 0 "Back to game"
+  buttons, received 1*. After the fix: ESLint clean, `tsc` clean, 71 unit +
+  24 E2E green.
+- **Status:** Fixed (design artifacts pending).
 
 ## DEF-010 — Vs. Computer totals hard-code the difficulty buckets
 

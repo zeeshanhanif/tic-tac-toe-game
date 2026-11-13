@@ -15,6 +15,9 @@ import type { StatsStore } from "../../infra/stats-store.ts";
 
 interface StatsViewHandlers {
   onBack: () => void; // FR-UI-002
+  // The destination is the caller's, so the label is too: Stats is reached
+  // from Game and from Setup, and Back goes to whichever opened it (DEF-009).
+  backLabel: string;
 }
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
@@ -39,7 +42,7 @@ export function createStatsView(statsStore: StatsStore, handlers: StatsViewHandl
 
   function topBar(): HTMLElement {
     const bar = el("header", "topbar");
-    const back = el("button", "back", "‹ Back to game");
+    const back = el("button", "back", handlers.backLabel);
     back.type = "button";
     back.addEventListener("click", handlers.onBack);
     // Global theme toggle (FEAT-007): Back + toggle clustered right, wordmark left.

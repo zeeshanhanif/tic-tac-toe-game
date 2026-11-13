@@ -27,7 +27,9 @@ export function mountShell(root: HTMLElement): void {
     // depending on the view to cancel itself (DEF-006).
     currentGameView?.pause();
     currentGameView = null;
-    app.replaceChildren(createSetupView({ onStart: showGame, onViewStats: () => showStats(showSetup) }));
+    app.replaceChildren(
+      createSetupView({ onStart: showGame, onViewStats: () => showStats(showSetup, "‹ Back to menu") }),
+    );
   }
 
   function showGame(config: GameConfig): void {
@@ -44,7 +46,7 @@ export function mountShell(root: HTMLElement): void {
   // has already read past (DEF-006).
   function leaveGameForStats(): void {
     currentGameView?.pause();
-    showStats(backToGame);
+    showStats(backToGame, "‹ Back to game");
   }
 
   function backToGame(): void {
@@ -56,8 +58,8 @@ export function mountShell(root: HTMLElement): void {
     }
   }
 
-  function showStats(back: () => void): void {
-    app.replaceChildren(createStatsView(statsStore, { onBack: back }));
+  function showStats(back: () => void, backLabel: string): void {
+    app.replaceChildren(createStatsView(statsStore, { onBack: back, backLabel }));
   }
 
   showSetup(); // land on Setup
