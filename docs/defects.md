@@ -12,6 +12,10 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
+| DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Open |
+| DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Open |
+| DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Open |
+| DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Open |
 
 ---
 
@@ -305,3 +309,76 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   button.seg-opt"*. After the fix: ESLint clean, 71 unit + 22 E2E green,
   `tsc`/Vite build clean, and screenshots of all three screens at 320 px and
   1280 px. FEAT-007 re-verified — see its acceptance report.
+
+## DEF-008 — Theme toggle shows a stale selection after a Stats round trip
+
+- **Observed (repository code review, 2026-11-13):** the shell keeps one
+  `GameView` alive across Game → Stats → Back (DEF-006 / D1) and re-attaches its
+  element as-is (`src/ui/shell.ts:52`). `resume` is `scheduleAIIfNeeded`
+  (`src/ui/views/game.ts:235`), which only re-renders when it is the AI's turn.
+  The game's top-bar toggle was painted once by `themeToggle()`
+  (`src/ui/dom.ts:46`) from `getTheme()` at render time.
+- **Owning feature:** FEAT-007 (global theme toggle on every screen).
+- **Impact:** **Visible.** In a game with Light active, open Stats, choose Dark,
+  click Back: the page is dark but the game's toggle still highlights *Light*.
+  Same in vs-Computer whenever it is the human's turn or the game is over.
+  FR-THEME-001's control misreports the active theme.
+- **Root cause:** the toggle reads the theme once at construction and only
+  repaints on its own clicks; any other writer (the Stats screen's toggle) is
+  invisible to it, and the re-attached view is not re-rendered.
+- **Proposed fix:** have the Theme Controller notify on change and let each
+  toggle repaint from that, so every live toggle stays in sync regardless of
+  which screen changed the theme — fixing it at the source rather than
+  re-rendering the game on resume.
+- **Status:** Open.
+
+## DEF-009 — "Back to game" shown when Stats was opened from Setup
+
+- **Observed (repository code review, 2026-11-13):** the Stats back button is
+  hard-coded to "‹ Back to game" (`src/ui/views/stats.ts:42`), but Setup also
+  opens Stats (`showStats(showSetup)`, `src/ui/shell.ts:30`), where Back returns
+  to Setup.
+- **Owning feature:** FEAT-005 (stats view navigation, FR-UI-002).
+- **Impact:** **Visible.** On a fresh launch, *View stats & history* → the
+  button reads "Back to game", yet no game exists and it lands on the New Game
+  setup screen. The label promises a destination it does not go to.
+- **Root cause:** the destination is the caller's (`onBack`), but the label is
+  fixed in the view; ux-foundations only modelled the Game → Stats entry.
+- **Proposed fix:** the caller supplies the label with the handler — "‹ Back to
+  game" from Game (unchanged), "‹ Back to menu" from Setup (matching the Game
+  screen's own "Menu" wording for that destination).
+- **Status:** Open.
+
+## DEF-010 — Vs. Computer totals hard-code the difficulty buckets
+
+- **Observed (repository code review, 2026-11-13):** `summarize`
+  (`src/core/stats.ts:126`) computes the Vs. Computer aggregate as
+  `vsComputer.easy + vsComputer.medium + vsComputer.hard` by name. `core/ai.ts`
+  documents `DIFFICULTIES` as the single source that keeps "validators, and
+  stats buckets together (no drift)", and `emptyStatsState`, `isValidStatsState`
+  and `recordResult` all honor it.
+- **Owning feature:** FEAT-005 (stats summary, FR-STATS-003).
+- **Impact:** **Latent.** No visible effect with today's three levels. Adding a
+  level to `DIFFICULTIES` would create, validate and increment its bucket, but
+  the Vs. Computer and All tiles and win rate would silently exclude it — the
+  exact drift the single-source list exists to prevent.
+- **Proposed fix:** fold over `DIFFICULTIES` instead of naming the buckets.
+- **Status:** Open.
+
+## DEF-011 — vs-Computer record without a difficulty is filed under Medium
+
+- **Observed (repository code review, 2026-11-13):** `isMatchRecord`
+  (`src/core/stats.ts:83`) treats `difficulty` as optional for every mode, and
+  `recordResult` (`:151`) plus the history row (`src/ui/views/stats.ts:101`)
+  default a missing one to `"medium"`.
+- **Owning feature:** FEAT-004 (Stats Service / persisted shape).
+- **Impact:** **Latent data-integrity.** FR-STATS-001 segments vs-Computer
+  counts by difficulty and FR-STATS-002 requires the record to capture it. A
+  vs-Computer record lacking it — from a stored entry with the field missing, or
+  a future caller bug — is accepted and silently counted and displayed as
+  Medium instead of being rejected.
+- **Proposed fix:** the guard requires a valid `difficulty` when
+  `mode === "vs-computer"` (so corrupt persisted state resets, per NFR-REL-001 /
+  DEF-003), and `recordResult` throws on such a record rather than guessing a
+  bucket. Make the `MatchRecord` type say so too.
+- **Status:** Open.
