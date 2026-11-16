@@ -345,7 +345,8 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   for an ended game (the two states whose resume previously never rendered).
 - **Verification:** failing test first — red with *Dark toggle class
   `"seg-opt"`, expected `on`* after a Dark switch on Stats. After the fix:
-  ESLint clean, 71 unit + 23 E2E green.
+  ESLint clean, 71 unit + 23 E2E green. FEAT-007 re-verified — see its
+  acceptance report's DEF-008 re-verification.
 - **Status:** Fixed.
 
 ## DEF-009 — "Back to game" shown when Stats was opened from Setup
@@ -377,7 +378,8 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   CF-2 test still covers the Game-origin label.
 - **Verification:** failing test first — red with *expected 0 "Back to game"
   buttons, received 1*. After the fix: ESLint clean, `tsc` clean, 71 unit +
-  24 E2E green.
+  24 E2E green. FEAT-005 re-verified — see its acceptance report's
+  DEF-009 + DEF-010 re-verification.
 - **Status:** Fixed (design artifacts pending).
 
 ## DEF-010 — Vs. Computer totals hard-code the difficulty buckets
@@ -402,7 +404,8 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   count it. In its own file because `vi.mock` is module-wide.
 - **Verification:** failing test first — red with *expected wins 1, received 0*
   (premise green, so the bucket was created but not summed). After the fix:
-  ESLint clean, `tsc` clean, 72 unit tests green.
+  ESLint clean, `tsc` clean, 72 unit tests green. FEAT-005 re-verified — see
+  its acceptance report's DEF-009 + DEF-010 re-verification.
 - **Status:** Fixed.
 
 ## DEF-011 — vs-Computer record without a difficulty is filed under Medium
@@ -441,5 +444,6 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   `recordResult` throws on such a record and leaves the input untouched.
 - **Verification:** failing tests first — red with *expected [Function] to
   throw* and *expected true to be false*. After the fix: ESLint clean, `tsc`
-  clean, 74 unit + 24 E2E green.
+  clean, 74 unit + 24 E2E green. FEAT-004 re-verified — see its acceptance
+  report's DEF-011 re-verification.
 - **Status:** Fixed.

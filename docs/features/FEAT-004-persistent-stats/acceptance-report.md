@@ -2,8 +2,55 @@
 
 > Verdict: **Accepted** · Date: 2026-08-08
 > Re-verification (DEF-003): **Accepted (holds)** · Date: 2026-08-11
+> Re-verification (DEF-011): **Accepted (holds)** · Date: 2026-11-16
 > Standard: technical-design.md §6 (6 criteria) · Sources: srs.md, architecture.md (ADR-004, §8)
 > Repo state audited: HEAD (b814061) — FEAT-004 fully committed
+
+## DEF-011 re-verification — 2026-11-16 (Accepted, holds)
+
+> Repo state audited: `dacc484` · Fix under audit: `dacc484`
+
+**DEF-011:** `isMatchRecord` treated `difficulty` as optional for every mode, and
+`recordResult` defaulted a missing one to `"medium"`. A vs-Computer record
+without a difficulty was accepted and silently counted under Medium.
+**FR-STATS-002** requires the record to capture "difficulty (if applicable)",
+and **FR-STATS-001** segments vs-Computer counts by it. The design's
+`difficulty?` (technical-design §3 and AC-2) encodes "if applicable" as a
+type-level optional, which is faithful. The defect was the code turning
+"missing where required" into a guess instead of a rejection. **No design
+amendment required.**
+
+- **Fix audited:**
+  - **AC-6:** the load guard rejects a vs-Computer entry with no difficulty, so
+    such persisted state resets to defaults through the existing DEF-003 path.
+  - **AC-1:** `recordResult` throws instead of choosing a bucket.
+  - The Stats history row shows a neutral "AI" for the guard-unreachable case.
+  - The only producer, the Game view, always supplies a difficulty in
+    vs-Computer, so no live path throws.
+- **Test audit (`core/stats.test.ts`):**
+  - The guard test now also rejects `{mode:"vs-computer", result, timestamp}`;
+    the well-formed cases (two-player without a difficulty, vs-computer with
+    one) still pass.
+  - A new `recordResult` test asserts the throw names the difficulty and that
+    the input state is untouched (Medium bucket zero, history empty).
+  - Two-player records are confirmed to still need no difficulty.
+- **Mutation check (this run):** reverting only the production change in
+  `core/stats.ts` turns the guard red.
+- **Trade-off carried, not hidden:** stored history containing such an entry
+  now resets the *whole* stats state on load. That is the DEF-003 policy for
+  any malformed entry. The app never wrote such entries, so only tampered or
+  externally corrupted data is affected. Recorded in the ledger.
+- **Type tightening not taken:** making `MatchRecord` a union discriminated on
+  `mode` would let the compiler enforce the rule. It was left out to keep the
+  fix scoped and is recorded in the ledger as a cleanup candidate. Not a
+  finding: the runtime guard is the NFR-REL-001 contract.
+- **Feature criteria re-checked:** AC-1 to AC-6 unit and infra suites
+  (`stats.test.ts`, `stats-store.test.ts`, `storage.test.ts`) run green.
+  End-to-end, the vs-Computer record → Stats path is now also asserted by
+  FEAT-005's new AC-2 test.
+- **Independent execution (this run):** ESLint clean · **74 unit** · **25 E2E** ·
+  `tsc` + Vite build clean.
+- **Verdict:** **Accepted (holds)**. DEF-011 → **Fixed**. RTM unchanged.
 
 ## DEF-003 re-verification — 2026-08-11 (Accepted, holds)
 

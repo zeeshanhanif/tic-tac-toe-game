@@ -3,6 +3,60 @@
 > Verdict: **Accepted** · Date: 2026-08-09
 > Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
 > Re-verification (DEF-006): **Accepted (holds)** · Date: 2026-08-23
+> Re-verification (DEF-009, DEF-010): **Accepted (holds)** · Date: 2026-11-16 — *design artifacts pending (DEF-009)*
+
+## DEF-009 + DEF-010 re-verification — 2026-11-16 (Accepted, holds)
+
+> Repo state audited: `dacc484` + the AC-2 test added in this run · Fixes under
+> audit: `12ab5d2` (DEF-009), `9b32630` (DEF-010)
+
+**DEF-009:** the Stats back button was hard-coded to "‹ Back to game", but Setup
+also opens Stats, where Back returns to Setup and no game exists. **AC-4**
+(FR-UI-002) covers only Game → Stats → Back and still holds. The Setup entry
+point comes from ux-foundations, not from this feature's criteria, so the
+criteria never constrained that label. That is a coverage gap in the standard,
+now closed by a regression test.
+
+**DEF-010:** `summarize` added `vsComputer.easy/medium/hard` by name instead of
+folding over `DIFFICULTIES`. With today's three levels **AC-1/AC-5** (summary
+counts per filter) were and are correct. The defect was latent: a new level
+would have been silently left out of the Vs. Computer and All totals.
+
+- **Fixes audited:** `StatsViewHandlers.backLabel` is required (not defaulted),
+  and the shell passes "‹ Back to game" from Game and "‹ Back to menu" from
+  Setup. `summarize` reduces over `DIFFICULTIES` from `emptyWLD()`.
+- **Test audit:**
+  - `review-stats.spec.ts` › "from Setup, Back is labelled for the menu and
+    returns there (DEF-009)" asserts no "Back to game" button exists, then
+    clicks the exact "‹ Back to menu" button and lands on Setup. The existing
+    CF-2 test still asserts the Game-origin label and the preserved game (AC-4).
+  - `stats.difficulty-drift.test.ts` mocks `DIFFICULTIES` with an extra level,
+    pins the premise (the bucket exists and holds 1), then asserts both the
+    Vs. Computer and All totals count it. It sits in its own file because
+    `vi.mock` is module-wide. Faithful to the single-source contract `core/ai.ts`
+    documents.
+- **Test added by this audit (AC-2):** no test asserted that a vs-Computer
+  history entry *shows its difficulty* (AC-2: "mode (+ difficulty for
+  vs-Computer)"). Every history assertion used 2-player games. That line also
+  changed under DEF-011, so it was unguarded twice over.
+  `review-stats.spec.ts` › "a vs-Computer history entry shows its difficulty
+  (AC-2)" plays the deterministic Hard line (X 0,1,3 → O wins on 6) and asserts
+  the row reads "Vs. Computer" / "Hard AI" with a Loss badge. Mutation-checked:
+  changing the subtitle text turns it red.
+- **Mutation checks (this run):** reverting only the production change of each
+  fix turns its guard red (DEF-009: `stats.ts` + `shell.ts`; DEF-010:
+  `core/stats.ts`).
+- **Feature criteria re-checked:** CF-2 (summary, history, filter, back), the
+  empty state, the FEAT-006 reset flow, and both DEF-006 freshness tests run
+  green.
+- **Independent execution (this run):** ESLint clean · **74 unit** · **25 E2E** ·
+  `tsc` + Vite build clean.
+- **Design artifacts pending (DEF-009):** ux-foundations (nav model: "Back to
+  game" on Stats) and this feature's ui-design describe only the Game-origin
+  label. They should record the Setup-origin "‹ Back to menu". Not edited here:
+  they belong to ux-foundations / ui-design.
+- **Verdict:** **Accepted (holds)**. DEF-009 → **Fixed (design artifacts
+  pending)**; DEF-010 → **Fixed**. RTM unchanged.
 
 ## DEF-006 re-verification — 2026-08-23 (Accepted, holds)
 
