@@ -35,6 +35,21 @@ test.describe("CF-2 — Review statistics", () => {
     await expect(page.getByText("X wins!")).toBeVisible();
   });
 
+  // DEF-009 regression: Setup also opens Stats (FR-UI-002), and there Back goes
+  // to Setup — no game exists, so the label must not promise one. Exact-name
+  // match: the Game-origin label "‹ Back to game" must not satisfy "Back".
+  test("from Setup, Back is labelled for the menu and returns there (DEF-009)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "View stats & history" }).click();
+    await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
+
+    await expect(page.getByRole("button", { name: /back to game/i })).toHaveCount(0);
+    await page.getByRole("button", { name: "‹ Back to menu", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "New Game" })).toBeVisible();
+  });
+
   test("empty stats show zeroed tiles and an empty history", async ({ page }) => {
     await page.goto("/");
     await page.getByText("2 Players").click();

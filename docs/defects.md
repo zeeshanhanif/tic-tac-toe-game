@@ -12,6 +12,10 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
 | DEF-005 | 2026-08-15 | NFR-USE-002 · FEAT-007 (theme toggle) / FEAT-005 (footer link) | Visible | Theme-toggle segments (~30px) and the `.footer .link` stats entry point omit `min-height: var(--layout-touchTargetMin)`, breaching the 44×44 touch minimum | Fixed |
 | DEF-006 | 2026-08-15 | FR-STATS-003 · FEAT-005 (stats view) | Stale-data | Navigating Game → Stats does not cancel the pending AI timer, so a game can finish behind the user and the already-snapshotted Stats view shows counts one game behind | Fixed |
 | DEF-007 | 2026-08-20 | NFR-COMPAT-002 · FEAT-007 (top bar) | Layout | At a 320 px viewport the page scrolls horizontally (scrollWidth 348 vs 320): `.topbar` does not wrap and wordmark + theme toggle exceed the content column | Fixed (design artifacts pending) |
+| DEF-008 | 2026-11-13 | FR-THEME-001 · FEAT-007 (theme toggle) | Visible | After Game → Stats → theme change → Back, the re-attached game's theme toggle still highlights the old theme (the cached view is not repainted) | Fixed |
+| DEF-009 | 2026-11-13 | FR-UI-002 · FEAT-005 (stats view) | Visible | Stats opened from Setup labels its back button "‹ Back to game", but it returns to Setup and no game exists | Fixed (design artifacts pending) |
+| DEF-010 | 2026-11-13 | FR-STATS-001/003 · FEAT-005 (stats summary) | Latent | `summarize` sums `vsComputer.easy/medium/hard` by name instead of iterating `DIFFICULTIES`, so a new level would be silently dropped from the Vs. Computer and All totals | Fixed |
+| DEF-011 | 2026-11-13 | FR-STATS-001/002 · FEAT-004 (stats store) | Latent | A vs-Computer `MatchRecord` with no `difficulty` passes `isMatchRecord` and is silently filed under Medium by `recordResult` and the history row | Fixed |
 
 ---
 
@@ -305,3 +309,137 @@ requirement). Owned by the sdlc-orchestrator. Newest rows at the bottom.
   button.seg-opt"*. After the fix: ESLint clean, 71 unit + 22 E2E green,
   `tsc`/Vite build clean, and screenshots of all three screens at 320 px and
   1280 px. FEAT-007 re-verified — see its acceptance report.
+
+## DEF-008 — Theme toggle shows a stale selection after a Stats round trip
+
+- **Observed (repository code review, 2026-11-13):** the shell keeps one
+  `GameView` alive across Game → Stats → Back (DEF-006 / D1) and re-attaches its
+  element as-is (`src/ui/shell.ts:52`). `resume` is `scheduleAIIfNeeded`
+  (`src/ui/views/game.ts:235`), which only re-renders when it is the AI's turn.
+  The game's top-bar toggle was painted once by `themeToggle()`
+  (`src/ui/dom.ts:46`) from `getTheme()` at render time.
+- **Owning feature:** FEAT-007 (global theme toggle on every screen).
+- **Impact:** **Visible.** In a game with Light active, open Stats, choose Dark,
+  click Back: the page is dark but the game's toggle still highlights *Light*.
+  Same in vs-Computer whenever it is the human's turn or the game is over.
+  FR-THEME-001's control misreports the active theme.
+- **Root cause:** the toggle reads the theme once at construction and only
+  repaints on its own clicks; any other writer (the Stats screen's toggle) is
+  invisible to it, and the re-attached view is not re-rendered.
+- **Proposed fix:** have the Theme Controller notify on change and let each
+  toggle repaint from that, so every live toggle stays in sync regardless of
+  which screen changed the theme — fixing it at the source rather than
+  re-rendering the game on resume. *(Not taken — see Fix.)*
+- **Fix** (`fix(DEF-008)`): `GameView.resume` now re-renders before re-arming
+  the AI. The notify-on-change design was rejected at fix time: toggles are
+  rebuilt on every render, so each would need an unsubscribe the view-less
+  `el()` helpers have no lifecycle for, and the detached game's toggle must still
+  catch a change made while it is off-screen — a listener would leak, and a
+  connected-only listener would miss exactly this case. The single re-attach
+  point is the one place a cached view can go stale, so repainting there fixes
+  this and any other global state the view shows. Re-rendering is cheap and
+  idempotent (no timers armed by `render`).
+- **Regression guard:** `tests/e2e/theme.spec.ts` — "the game's toggle reflects
+  a theme changed on Stats (DEF-008)": change the theme on Stats, go Back, and
+  assert the game's toggle highlights the new theme, for a human-turn game and
+  for an ended game (the two states whose resume previously never rendered).
+- **Verification:** failing test first — red with *Dark toggle class
+  `"seg-opt"`, expected `on`* after a Dark switch on Stats. After the fix:
+  ESLint clean, 71 unit + 23 E2E green.
+- **Status:** Fixed.
+
+## DEF-009 — "Back to game" shown when Stats was opened from Setup
+
+- **Observed (repository code review, 2026-11-13):** the Stats back button is
+  hard-coded to "‹ Back to game" (`src/ui/views/stats.ts:42`), but Setup also
+  opens Stats (`showStats(showSetup)`, `src/ui/shell.ts:30`), where Back returns
+  to Setup.
+- **Owning feature:** FEAT-005 (stats view navigation, FR-UI-002).
+- **Impact:** **Visible.** On a fresh launch, *View stats & history* → the
+  button reads "Back to game", yet no game exists and it lands on the New Game
+  setup screen. The label promises a destination it does not go to.
+- **Root cause:** the destination is the caller's (`onBack`), but the label is
+  fixed in the view; ux-foundations only modelled the Game → Stats entry.
+- **Proposed fix:** the caller supplies the label with the handler — "‹ Back to
+  game" from Game (unchanged), "‹ Back to menu" from Setup (matching the Game
+  screen's own "Menu" wording for that destination).
+- **Fix** (`fix(DEF-009)`): `StatsViewHandlers` gains a required `backLabel`;
+  the shell passes "‹ Back to game" from Game and "‹ Back to menu" from Setup.
+  Required rather than defaulted, so a future entry point cannot silently
+  inherit the wrong label.
+- **Design artifacts:** ux-foundations (nav model, "Back to game" on Stats) and
+  FEAT-005's ui-design describe only the Game-origin label. **Not edited here** —
+  they are ux-foundations' / ui-design's artifacts; they should record the
+  Setup-origin "‹ Back to menu".
+- **Regression guard:** `tests/e2e/review-stats.spec.ts` — "from Setup, Back is
+  labelled for the menu and returns there (DEF-009)": no "Back to game" button
+  exists, and the exact "‹ Back to menu" button lands on Setup. The existing
+  CF-2 test still covers the Game-origin label.
+- **Verification:** failing test first — red with *expected 0 "Back to game"
+  buttons, received 1*. After the fix: ESLint clean, `tsc` clean, 71 unit +
+  24 E2E green.
+- **Status:** Fixed (design artifacts pending).
+
+## DEF-010 — Vs. Computer totals hard-code the difficulty buckets
+
+- **Observed (repository code review, 2026-11-13):** `summarize`
+  (`src/core/stats.ts:126`) computes the Vs. Computer aggregate as
+  `vsComputer.easy + vsComputer.medium + vsComputer.hard` by name. `core/ai.ts`
+  documents `DIFFICULTIES` as the single source that keeps "validators, and
+  stats buckets together (no drift)", and `emptyStatsState`, `isValidStatsState`
+  and `recordResult` all honor it.
+- **Owning feature:** FEAT-005 (stats summary, FR-STATS-003).
+- **Impact:** **Latent.** No visible effect with today's three levels. Adding a
+  level to `DIFFICULTIES` would create, validate and increment its bucket, but
+  the Vs. Computer and All tiles and win rate would silently exclude it — the
+  exact drift the single-source list exists to prevent.
+- **Proposed fix:** fold over `DIFFICULTIES` instead of naming the buckets.
+- **Fix** (`fix(DEF-010)`): `summarize` reduces over `DIFFICULTIES` from
+  `emptyWLD()`. Behaviour with today's three levels is unchanged.
+- **Regression guard:** `src/core/stats.difficulty-drift.test.ts` — mocks
+  `./ai.ts` to append an `"expert"` level, records a win there, pins the premise
+  (the bucket exists and holds 1), then asserts the Vs. Computer and All totals
+  count it. In its own file because `vi.mock` is module-wide.
+- **Verification:** failing test first — red with *expected wins 1, received 0*
+  (premise green, so the bucket was created but not summed). After the fix:
+  ESLint clean, `tsc` clean, 72 unit tests green.
+- **Status:** Fixed.
+
+## DEF-011 — vs-Computer record without a difficulty is filed under Medium
+
+- **Observed (repository code review, 2026-11-13):** `isMatchRecord`
+  (`src/core/stats.ts:83`) treats `difficulty` as optional for every mode, and
+  `recordResult` (`:151`) plus the history row (`src/ui/views/stats.ts:101`)
+  default a missing one to `"medium"`.
+- **Owning feature:** FEAT-004 (Stats Service / persisted shape).
+- **Impact:** **Latent data-integrity.** FR-STATS-001 segments vs-Computer
+  counts by difficulty and FR-STATS-002 requires the record to capture it. A
+  vs-Computer record lacking it — from a stored entry with the field missing, or
+  a future caller bug — is accepted and silently counted and displayed as
+  Medium instead of being rejected.
+- **Proposed fix:** the guard requires a valid `difficulty` when
+  `mode === "vs-computer"` (so corrupt persisted state resets, per NFR-REL-001 /
+  DEF-003), and `recordResult` throws on such a record rather than guessing a
+  bucket. Make the `MatchRecord` type say so too.
+- **Fix** (`fix(DEF-011)`): `isMatchRecord` rejects a vs-Computer entry with no
+  `difficulty`, so such persisted state resets to defaults through the existing
+  DEF-003 load path; `recordResult` throws instead of defaulting to Medium; the
+  history row no longer guesses "Medium AI" (neutral "AI" for the
+  guard-unreachable case). The only producer, the Game view, always supplies a
+  difficulty in vs-Computer, so no live path throws.
+- **Not taken — type tightening:** turning `MatchRecord` into a discriminated
+  union on `mode` would move the rule into the compiler, but it ripples through
+  the Game view's record construction and the `Partial<MatchRecord>` test
+  helpers in two suites. Left out to keep the fix scoped; a candidate for a
+  later cleanup.
+- **Accepted trade-off:** stored history that has a difficulty-less vs-Computer
+  entry now **resets the whole stats state** on load, the same policy DEF-003
+  set for any malformed entry. The app itself never wrote such entries, so only
+  tampered or externally corrupted data is affected.
+- **Regression guard:** `src/core/stats.test.ts` — the guard rejects a
+  vs-Computer history entry with no difficulty (two-player still needs none);
+  `recordResult` throws on such a record and leaves the input untouched.
+- **Verification:** failing tests first — red with *expected [Function] to
+  throw* and *expected true to be false*. After the fix: ESLint clean, `tsc`
+  clean, 74 unit + 24 E2E green.
+- **Status:** Fixed.

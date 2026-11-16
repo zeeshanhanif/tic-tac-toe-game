@@ -230,8 +230,12 @@ export function createGameView(
     // Detached (the user opened Stats): drop the pending AI move so nothing is
     // played — and nothing is recorded — while this view is off-screen.
     pause: cancelAI,
-    // Re-attached: re-arm if it is still the AI's turn. `scheduleAIIfNeeded` is
-    // a no-op otherwise, so resuming a human-turn or finished game is safe.
-    resume: scheduleAIIfNeeded,
+    // Re-attached: repaint first — anything global the view shows (the theme
+    // toggle) may have changed while it was detached (DEF-008) — then re-arm if
+    // it is still the AI's turn (`scheduleAIIfNeeded` is a no-op otherwise).
+    resume: () => {
+      render();
+      scheduleAIIfNeeded();
+    },
   };
 }

@@ -76,6 +76,43 @@ test.describe("FEAT-007 — theming", () => {
     expect(await colorScheme(page)).toBe("light dark");
   });
 
+  // DEF-008 regression: the shell re-attaches the SAME game element on Back
+  // (DEF-006 / D1). A theme change made on Stats must still be reflected by the
+  // game's own toggle — not just by data-theme — or the control misreports the
+  // active theme (FR-THEME-001). Covers both human-turn and ended games, which
+  // never re-rendered on resume.
+  test("the game's toggle reflects a theme changed on Stats (DEF-008)", async ({ page }) => {
+    const light = page.getByRole("button", { name: "Light" });
+    const dark = page.getByRole("button", { name: "Dark" });
+
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.goto("/");
+    await page.getByText("2 Players").click();
+    await page.getByRole("button", { name: "Start Game" }).click();
+    await expect(page.locator(".board")).toBeVisible();
+    await expect(light).toHaveClass(/\bon\b/);
+
+    // Human-turn game: Stats → Dark → Back.
+    await page.getByRole("button", { name: "View stats & history" }).click();
+    await dark.click();
+    await page.getByRole("button", { name: "‹ Back to game" }).click();
+    await expect(page.locator(".board")).toBeVisible();
+    await expect(html(page)).toHaveAttribute("data-theme", "dark");
+    await expect(dark).toHaveClass(/\bon\b/);
+    await expect(light).not.toHaveClass(/\bon\b/);
+
+    // Ended game (X wins 0,1,2): Stats → Light → Back.
+    const cells = page.locator(".cell");
+    for (const i of [0, 3, 1, 4, 2]) await cells.nth(i).click();
+    await expect(page.getByText("X wins!")).toBeVisible();
+    await page.getByRole("button", { name: "View stats & history" }).click();
+    await light.click();
+    await page.getByRole("button", { name: "‹ Back to game" }).click();
+    await expect(page.getByText("X wins!")).toBeVisible(); // same game, preserved
+    await expect(light).toHaveClass(/\bon\b/);
+    await expect(dark).not.toHaveClass(/\bon\b/);
+  });
+
   test("the theme toggle is present on every screen (AC-2)", async ({ page }) => {
     await page.goto("/");
 

@@ -26,7 +26,7 @@ export interface Stats {
 
 export interface MatchRecord {
   mode: GameMode;
-  difficulty?: Difficulty; // vs-computer only
+  difficulty?: Difficulty; // required when mode is vs-computer (DEF-011); unused otherwise
   result: GameResult;
   timestamp: number; // ms epoch
 }
@@ -79,7 +79,9 @@ function isMatchRecord(x: unknown): x is MatchRecord {
   if (!GAME_MODES.includes(r.mode as GameMode)) return false;
   if (!GAME_RESULTS.includes(r.result as GameResult)) return false;
   if (typeof r.timestamp !== "number") return false;
-  // difficulty is optional (vs-computer only); if present it must be valid.
+  // difficulty is required for vs-computer (FR-STATS-001/002 — DEF-011) and
+  // optional otherwise; whenever present it must be a known level.
+  if (r.mode === "vs-computer" && r.difficulty === undefined) return false;
   if (r.difficulty !== undefined && !DIFFICULTIES.includes(r.difficulty as Difficulty)) return false;
   return true;
 }
@@ -123,7 +125,8 @@ function addWLD(a: WLD, b: WLD): WLD {
 /** Aggregate W/L/D for the selected filter (FR-STATS-003). */
 export function summarize(state: StatsState, filter: StatsFilter): WLD {
   const { twoPlayer, vsComputer } = state.stats;
-  const vsAll = addWLD(addWLD(vsComputer.easy, vsComputer.medium), vsComputer.hard);
+  // Folded over DIFFICULTIES, not named buckets, so a new level is counted (DEF-010).
+  const vsAll = DIFFICULTIES.reduce((acc, d) => addWLD(acc, vsComputer[d]), emptyWLD());
   switch (filter) {
     case "two-player":
       return { ...twoPlayer };
@@ -148,7 +151,10 @@ export function recordResult(state: StatsState, record: MatchRecord): StatsState
 
   let stats: Stats;
   if (record.mode === "vs-computer") {
-    const diff = record.difficulty ?? "medium";
+    // Never guess a bucket: a vs-Computer result is segmented by difficulty
+    // (FR-STATS-001), so a record without one is a caller bug (DEF-011).
+    const diff = record.difficulty;
+    if (diff === undefined) throw new Error("recordResult: vs-computer record has no difficulty");
     const bucket = state.stats.vsComputer[diff];
     stats = {
       ...state.stats,
