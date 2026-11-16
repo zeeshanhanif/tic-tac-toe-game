@@ -4,6 +4,44 @@
 > Re-verification (DEF-004): **Accepted (holds)** · Date: 2026-08-16
 > Re-verification (DEF-005): **Accepted (holds)** · Date: 2026-08-20
 > Re-verification (DEF-007): **Accepted (holds)** · Date: 2026-08-29 — *design artifacts pending*
+> Re-verification (DEF-008): **Accepted (holds)** · Date: 2026-11-16
+
+## DEF-008 re-verification — 2026-11-16 (Accepted, holds)
+
+> Repo state audited: `dacc484` · Fix under audit: `2584500`
+
+**DEF-008:** the shell re-attaches the *same* game element after a Stats round
+trip (DEF-006 / FEAT-005 D1), and `resume` only re-rendered on the AI's turn. A
+theme changed on Stats reached `data-theme`, but the game's own toggle kept
+highlighting the old theme in a human-turn or finished game. This was a latent
+gap in **AC-1/AC-2** (FR-THEME-001): the criteria check that the toggle exists on
+every screen and that switching applies, never that a toggle on a *cached*
+screen still reports the active theme.
+
+- **Fix audited:** `GameView.resume` now calls `render()` before
+  `scheduleAIIfNeeded()`. `render` arms no timers, so the extra paint is
+  idempotent; when it *is* the AI's turn, the second render (from scheduling)
+  follows in the same task with no paint in between.
+- **Rejected alternative (recorded in the ledger):** a Theme Controller
+  subscription. Toggles are rebuilt on every render with no teardown hook, so
+  listeners would leak, and a connected-only listener would miss exactly this
+  case (the toggle is detached while the change happens).
+- **Test audit:** `theme.spec.ts` › "the game's toggle reflects a theme changed
+  on Stats (DEF-008)" asserts the criterion faithfully: after a Stats-side
+  change, the game's toggle highlights the new theme *and* un-highlights the
+  old one, for a human-turn game and an ended game (the two states that never
+  re-rendered). It pins its premises (board mounted; "X wins!" still shown, so
+  it is the same game).
+- **Mutation check (this run):** reverting only the production change in
+  `src/ui/views/game.ts` turns the guard red; restoring it turns it green.
+- **Feature criteria re-checked:** all FEAT-007 E2E tests (switch + persist,
+  DEF-004 color-scheme, bare default, toggle on every screen), the DEF-005
+  touch-target guard and the DEF-007 responsive guard run green.
+- **Independent execution (this run):** ESLint clean · **74 unit** · **25 E2E** ·
+  `tsc` + Vite build clean.
+- **Design artifacts:** none affected — no design document specifies when the
+  game view re-renders.
+- **Verdict:** **Accepted (holds)**. DEF-008 → **Fixed**. RTM unchanged.
 
 ## DEF-007 re-verification — 2026-08-29 (Accepted, holds)
 
