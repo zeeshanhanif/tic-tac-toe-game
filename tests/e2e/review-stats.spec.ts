@@ -50,6 +50,30 @@ test.describe("CF-2 — Review statistics", () => {
     await expect(page.getByRole("heading", { name: "New Game" })).toBeVisible();
   });
 
+  // AC-2: a vs-Computer history entry shows its difficulty. Uncovered until the
+  // DEF-011 re-verification, which changed this exact line (it used to guess
+  // "Medium" when the difficulty was missing). Deterministic line from
+  // stats-freshness.spec: as X vs Hard, cells 0, 1, 3 → O wins on 6.
+  test("a vs-Computer history entry shows its difficulty (AC-2)", async ({ page }) => {
+    await page.goto("/");
+    await page.getByText("Vs. Computer").click();
+    await page.getByRole("button", { name: "Hard" }).click();
+    await page.getByRole("button", { name: "Start Game" }).click();
+    const cells = page.locator(".cell");
+    for (const [mine, reply] of [[0, 4], [1, 2]]) {
+      await cells.nth(mine).click();
+      await expect(cells.nth(reply)).toHaveText("O");
+    }
+    await cells.nth(3).click();
+    await expect(page.getByText("O wins!")).toBeVisible();
+
+    await page.getByRole("button", { name: "View stats & history" }).click();
+    const row = page.locator(".history .hrow").first();
+    await expect(row.locator(".mt")).toHaveText("Vs. Computer");
+    await expect(row.locator(".ms")).toHaveText("Hard AI");
+    await expect(row.locator(".rbadge.loss")).toBeVisible();
+  });
+
   test("empty stats show zeroed tiles and an empty history", async ({ page }) => {
     await page.goto("/");
     await page.getByText("2 Players").click();
