@@ -1,6 +1,6 @@
 # UX Foundations: Tic-Tac-Toe Game
 
-> Status: Draft · Last updated: 2026-07-13
+> Status: Draft · Last updated: 2026-11-17 (DEF-009 amendment: Stats back pill)
 > Sources: docs/srs.md · docs/architecture.md · docs/use-cases.md
 > Design system: **docs/design.md + docs/tokens.json** (single source of truth for
 > all design values — this document references, never restates them)
@@ -92,9 +92,16 @@ Top jobs (each seeds a flow and screens):
 #### Information architecture & navigation
 
 Flat, three-view app with a persistent top bar (wordmark + theme toggle on Setup
-and Game; wordmark + "Back to game" on Stats). No deep hierarchy; navigation is
-lateral: Setup → Game, Game ↔ Stats, Game → Setup ("Menu"). The theme toggle is
-global.
+and Game; wordmark + back pill + theme toggle on Stats). No deep hierarchy;
+navigation is lateral: Setup → Game, Game ↔ Stats, Setup ↔ Stats, Game → Setup
+("Menu"). The theme toggle is global.
+
+Stats has two entry points, both via the "View stats & history" footer link, and
+its back pill returns to whichever screen opened it. The label names that
+destination: **"‹ Back to game"** from Game (the game is preserved) and
+**"‹ Back to menu"** from Setup. "Menu" matches the Game screen's own wording for
+Setup. *(Amended 2026-11-17, DEF-009: only the Game → Stats entry was modelled
+here, so the Setup-origin back pill promised a game that did not exist.)*
 
 ```mermaid
 graph TD
@@ -110,6 +117,8 @@ graph TD
     game -->|"Menu"| setup
     game -->|"View stats"| stats
     stats -->|"Back to game"| game
+    setup -->|"View stats"| stats
+    stats -->|"Back to menu"| setup
 ```
 
 #### Key user flows
