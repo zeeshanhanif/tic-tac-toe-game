@@ -168,7 +168,7 @@
       },
       "status": "designed",
       "designed_at": "2026-08-08",
-      "updated_by": ["FEAT-006 (reset trigger)", "FEAT-007 (theme toggle in header)"]
+      "updated_by": ["FEAT-006 (reset trigger)", "FEAT-007 (theme toggle in header)", "DEF-009 (back-pill label names its destination: Game → '‹ Back to game', Setup → '‹ Back to menu'; 2026-11-17)"]
     },
     "SCR-WEB-005": {
       "name": "Reset Confirmation",
